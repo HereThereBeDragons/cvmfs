@@ -32,6 +32,11 @@ class InterruptCue;
 
 namespace download {
 
+enum ShardingPolicy {
+  kDefaultPolicy = 0,
+  kExternalDataPolicy
+};
+
 /**
  * Possible return values.  Adjust ObjectFetcher error handling if new network
  * error conditions are added.
@@ -454,6 +459,9 @@ class DownloadManager {  // NOLINT(clang-analyzer-optin.performance.Padding)
   void EnableRedirects();
   void UseSystemCertificatePath();
 
+  //sharding
+  void SetShardingPolicy(enum ShardingPolicy k) { policy_ = k; }
+
   unsigned num_hosts() {
     if (opt_host_chain_) return opt_host_chain_->size();
     return 0;
@@ -475,14 +483,17 @@ class DownloadManager {  // NOLINT(clang-analyzer-optin.performance.Padding)
   void SwitchHost(JobInfo *info);
   void SwitchProxy(JobInfo *info);
   ProxyInfo *ChooseProxyUnlocked(const shash::Any *hash);
-  void UpdateProxiesUnlocked(const std::string &reason);
-  void RebalanceProxiesUnlocked(const std::string &reason);
+  void UpdateProxiesUnlocked(const std::string &reason, const JobInfo *info,
+                             enum ShardingPolicy policy);
+  void RebalanceProxiesUnlocked(const std::string &reason, const JobInfo *info,
+                                enum ShardingPolicy policy);
   CURL *AcquireCurlHandle();
   void ReleaseCurlHandle(CURL *handle);
   void ReleaseCredential(JobInfo *info);
   void InitializeRequest(JobInfo *info, CURL *handle);
   void SetUrlOptions(JobInfo *info);
-  bool ValidateProxyIpsUnlocked(const std::string &url, const dns::Host &host);
+  bool ValidateProxyIpsUnlocked(const std::string &url, const dns::Host &host,
+                                const JobInfo *info);
   void UpdateStatistics(CURL *handle);
   bool CanRetry(const JobInfo *info);
   void Backoff(JobInfo *info);
@@ -579,6 +590,8 @@ class DownloadManager {  // NOLINT(clang-analyzer-optin.performance.Padding)
    * Shard requests across multiple proxies via consistent hashing
    */
   bool opt_proxy_shard_;
+
+  enum ShardingPolicy policy_;
 
   /**
    * Used to resolve proxy addresses (host addresses are resolved by the proxy).

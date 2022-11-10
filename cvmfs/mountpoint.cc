@@ -1348,6 +1348,12 @@ bool MountPoint::CreateDownloadManagers() {
   if (options_mgr_->GetValue("CVMFS_PROXY_SHARD", &optarg) &&
       options_mgr_->IsOn(optarg)) {
     download_mgr_->ShardProxies();
+
+    if (options_mgr_->GetValue("CVMFS_PROXY_SHARDING_POLICY", &optarg)) {
+      if (optarg.compare("EXTERNAL_DATA")) {
+        download_mgr_->SetShardingPolicy(download::kExternalDataPolicy);
+      }
+    }
   }
 
   return SetupExternalDownloadMgr(do_geosort);

@@ -916,7 +916,7 @@ void DownloadManager::SetUrlOptions(JobInfo *info) {
     {
       opt_proxy_groups_current_ = 0;
       opt_timestamp_backup_proxies_ = 0;
-      RebalanceProxiesUnlocked("reset proxy group");
+      RebalanceProxiesUnlocked("reset proxy group", info, policy_);
     }
   }
   // Check if load-balanced proxies within the group need to be reset
@@ -926,7 +926,7 @@ void DownloadManager::SetUrlOptions(JobInfo *info) {
         static_cast<int64_t>(opt_timestamp_failover_proxies_ +
                              opt_proxy_groups_reset_after_))
     {
-      RebalanceProxiesUnlocked("reset load-balanced proxies");
+      RebalanceProxiesUnlocked("reset load-balanced proxies", info, policy_);
     }
   }
   // Check if host needs to be reset
@@ -955,7 +955,7 @@ void DownloadManager::SetUrlOptions(JobInfo *info) {
     // parameters directly
     std::string purl = proxy->url;
     dns::Host phost = proxy->host;
-    const bool changed = ValidateProxyIpsUnlocked(purl, phost);
+    const bool changed = ValidateProxyIpsUnlocked(purl, phost, info);
     // Current proxy may have changed
     if (changed)
       proxy = ChooseProxyUnlocked(info->expected_hash);
@@ -1064,7 +1064,8 @@ void DownloadManager::SetUrlOptions(JobInfo *info) {
  */
 bool DownloadManager::ValidateProxyIpsUnlocked(
   const string &url,
-  const dns::Host &host)
+  const dns::Host &host,
+  const JobInfo *info)
 {
   if (!host.IsExpired())
     return false;
@@ -1118,7 +1119,7 @@ bool DownloadManager::ValidateProxyIpsUnlocked(
   group->insert(group->end(), new_infos.begin(), new_infos.end());
   opt_num_proxies_ += new_infos.size();
 
-  RebalanceProxiesUnlocked("DNS change");
+  RebalanceProxiesUnlocked("DNS change", info, policy_);
   return true;
 }
 
@@ -1387,7 +1388,8 @@ bool DownloadManager::VerifyAndFinalize(const int curl_error, JobInfo *info) {
             {
               opt_proxy_groups_current_ = 0;
               opt_timestamp_backup_proxies_ = 0;
-              RebalanceProxiesUnlocked("reset proxies for host failover");
+              RebalanceProxiesUnlocked("reset proxies for host failover",
+                                       info, policy_);
             }
           }
 
@@ -1570,6 +1572,8 @@ DownloadManager::DownloadManager() {
   credentials_attachment_ = NULL;
 
   counters_ = NULL;
+
+  policy_ = kDefaultPolicy;
 }
 
 
@@ -2026,7 +2030,7 @@ void DownloadManager::SwitchProxy(JobInfo *info) {
     }
   }
 
-  UpdateProxiesUnlocked("failed proxy");
+  UpdateProxiesUnlocked("failed proxy", info, policy_);
   LogCvmfs(kLogDownload, kLogDebug, "%d proxies remain in group",
            current_proxy_group()->size() - opt_proxy_groups_current_burned_);
 }
@@ -2320,7 +2324,7 @@ bool DownloadManager::ProbeGeo() {
     opt_proxy_groups_current_burned_ = 0;
   }
 
-  UpdateProxiesUnlocked("geosort");
+  UpdateProxiesUnlocked("geosort", NULL, kDefaultPolicy);
 
   delete opt_host_chain_rtt_;
   opt_host_chain_rtt_ = new vector<int>(host_chain.size(), kProbeGeo);
@@ -2555,7 +2559,7 @@ void DownloadManager::SetProxyChain(
   // Select random start proxy from the first group.
   if (opt_proxy_groups_->size() > 0) {
     // Select random start proxy from the first group.
-    UpdateProxiesUnlocked("set proxies");
+    UpdateProxiesUnlocked("set proxies", NULL, kDefaultPolicy);
   }
 }
 
@@ -2614,10 +2618,53 @@ DownloadManager::ChooseProxyUnlocked(const shash::Any *hash) {
   return proxy;
 }
 
+
+// for external data sharding policy
+static unsigned int hash_sdbm(const char *key)
+{
+        unsigned int len = strlen(key);
+        unsigned int hash = 0;
+        int c;
+
+        while (len--) {
+                c = *key++;
+                hash = c + (hash << 6) + (hash << 16) - hash;
+        }
+        return hash;
+}
+
+// for external data sharding policy
+static unsigned int hash_key(const char *url)
+{
+        unsigned int a = hash_sdbm( url );
+        /* This function is one of Bob Jenkins' full avalanche hashing
+         * functions, which when provides quite a good distribution for little
+         * input variations. The result is quite suited to fit over a 32-bit
+         * space with enough variations so that a randomly picked number falls
+         * equally before any server position.
+         * Check http://burtleburtle.net/bob/hash/integer.html for more info.
+         */
+        a = (a+0x7ed55d16) + (a<<12);
+        a = (a^0xc761c23c) ^ (a>>19);
+        a = (a+0x165667b1) + (a<<5);
+        a = (a+0xd3a2646c) ^ (a<<9);
+        a = (a+0xfd7046c5) + (a<<3);
+        a = (a^0xb55a4f09) ^ (a>>16);
+
+        /* ensure values are better spread all around the tree by multiplying
+         * by a large prime close to 3/4 of the tree.
+         */
+        return a * 3221225473U;
+}
+
+
 /**
  * Update currently selected proxy
  */
-void DownloadManager::UpdateProxiesUnlocked(const string &reason) {
+void DownloadManager::UpdateProxiesUnlocked(const string &reason, 
+                                            const JobInfo *info,
+                                            enum ShardingPolicy policy 
+                                                    = kDefaultPolicy) {
   if (!opt_proxy_groups_)
     return;
 
@@ -2630,7 +2677,7 @@ void DownloadManager::UpdateProxiesUnlocked(const string &reason) {
   opt_proxy_map_.clear();
   opt_proxy_urls_.clear();
   const uint32_t max_key = 0xffffffffUL;
-  if (opt_proxy_shard_) {
+  if (opt_proxy_shard_ && policy == kDefaultPolicy) {
     // Build a consistent map with multiple entries for each proxy
     for (unsigned i = 0; i < num_alive; ++i) {
       ProxyInfo *proxy = &(*group)[i];
@@ -2642,6 +2689,34 @@ void DownloadManager::UpdateProxiesUnlocked(const string &reason) {
         const std::pair<uint32_t, ProxyInfo *> entry(prng.Next(max_key), proxy);
         opt_proxy_map_.insert(entry);
       }
+      opt_proxy_urls_.push_back(proxy->url);
+    }
+    
+    // Ensure lower_bound() finds a value for all keys
+    ProxyInfo *first_proxy = opt_proxy_map_.begin()->second;
+    const std::pair<uint32_t, ProxyInfo *> last_entry(max_key, first_proxy);
+    opt_proxy_map_.insert(last_entry);
+
+    LogCvmfs(kLogDownload, kLogDebug, "PROXY SHARDING: DEFAULT POLICY"); 
+  } else if (opt_proxy_shard_ && policy == kExternalDataPolicy) {
+    LogCvmfs(kLogDownload, kLogDebug, "PROXY SHARDING: EXTERNAL_SHARDING POLICY"); 
+    char buf[65536];
+    // see swissknife_graft.h
+    const unsigned kDefaultChunkSize = 24 * 1024 * 1024;
+
+    for (unsigned i = 0; i < num_alive; i++) {
+      ProxyInfo *proxy = &(*group)[i];
+      off_t b = info->range_offset / kDefaultChunkSize;
+
+      std::string name = *info->extra_info;
+      if( info->extra_info->rfind("Part of ", 0 ) == 0 ) {
+        name = std::string(name.substr(8, std::string::npos));
+      } 
+      snprintf( buf,  sizeof(buf) , "%s:%s:%lu", proxy->url.c_str(), name.c_str(), b );
+      buf[sizeof(buf)-1] = 0; //snprint 
+
+      const std::pair<uint32_t, ProxyInfo *> entry(hash_key(buf), proxy);
+      opt_proxy_map_.insert(entry); // automatically sorted by key
       opt_proxy_urls_.push_back(proxy->url);
     }
     // Ensure lower_bound() finds a value for all keys
@@ -2667,6 +2742,13 @@ void DownloadManager::UpdateProxiesUnlocked(const string &reason) {
              (new_proxy.empty() ? "(none)" : new_proxy.c_str()),
              reason.c_str());
   }
+
+  LogCvmfs(kLogDownload, kLogDebug, "PROXY SHARDING: FINAL SELECTION"); 
+  for (std::map<uint32_t, ProxyInfo *>::const_iterator iter_ips = 
+        opt_proxy_map_.begin(); iter_ips != opt_proxy_map_.end(); ++iter_ips) {
+    LogCvmfs(kLogDownload, kLogDebug,
+             "PROXY SHARDING: Key %d - Value %s", iter_ips->first, iter_ips->second->url.c_str());          
+  }
 }
 
 /**
@@ -2674,26 +2756,28 @@ void DownloadManager::UpdateProxiesUnlocked(const string &reason) {
  */
 void DownloadManager::ShardProxies() {
   opt_proxy_shard_ = true;
-  RebalanceProxiesUnlocked("enable sharding");
+  RebalanceProxiesUnlocked("enable sharding", NULL, kDefaultPolicy);
 }
 
 /**
  * Selects a new random proxy in the current load-balancing group.  Resets the
  * "burned" counter.
  */
-void DownloadManager::RebalanceProxiesUnlocked(const string &reason) {
+void DownloadManager::RebalanceProxiesUnlocked(const string &reason,
+                                               const JobInfo* info,
+                                               enum ShardingPolicy policy) {
   if (!opt_proxy_groups_)
     return;
 
   opt_timestamp_failover_proxies_ = 0;
   opt_proxy_groups_current_burned_ = 0;
-  UpdateProxiesUnlocked(reason);
+  UpdateProxiesUnlocked(reason, info, policy);
 }
 
 
 void DownloadManager::RebalanceProxies() {
   MutexLockGuard m(lock_options_);
-  RebalanceProxiesUnlocked("rebalance");
+  RebalanceProxiesUnlocked("rebalance", NULL, kDefaultPolicy);
 }
 
 
@@ -2710,7 +2794,7 @@ void DownloadManager::SwitchProxyGroup() {
   opt_proxy_groups_current_ = (opt_proxy_groups_current_ + 1) %
   opt_proxy_groups_->size();
   opt_timestamp_backup_proxies_ = time(NULL);
-  RebalanceProxiesUnlocked("switch proxy group");
+  RebalanceProxiesUnlocked("switch proxy group", NULL, kDefaultPolicy);
 }
 
 
@@ -2827,7 +2911,7 @@ void DownloadManager::CloneProxyConfig(DownloadManager *clone) {
 
   clone->opt_proxy_groups_ = new vector< vector<ProxyInfo> >(
     *opt_proxy_groups_);
-  clone->UpdateProxiesUnlocked("cloned");
+  clone->UpdateProxiesUnlocked("cloned", NULL, kDefaultPolicy);
 }
 
 }  // namespace download
