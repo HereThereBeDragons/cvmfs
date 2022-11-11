@@ -2909,6 +2909,8 @@ void DownloadManager::CloneProxyConfig(DownloadManager *clone) {
   if (opt_proxy_groups_ == NULL)
     return;
 
+  clone->policy_ = policy_
+
   clone->opt_proxy_groups_ = new vector< vector<ProxyInfo> >(
     *opt_proxy_groups_);
   clone->UpdateProxiesUnlocked("cloned", NULL, kDefaultPolicy);

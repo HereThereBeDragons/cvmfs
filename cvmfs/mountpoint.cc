@@ -1350,7 +1350,7 @@ bool MountPoint::CreateDownloadManagers() {
     download_mgr_->ShardProxies();
 
     if (options_mgr_->GetValue("CVMFS_PROXY_SHARDING_POLICY", &optarg)) {
-      if (optarg.compare("EXTERNAL_DATA")) {
+      if (optarg.compare("EXTERNAL_DATA") == 0) {
         download_mgr_->SetShardingPolicy(download::kExternalDataPolicy);
       }
     }
