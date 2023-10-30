@@ -31,11 +31,44 @@ LoadError SimpleCatalogManager::LoadCatalog(const PathString  &mountpoint,
   assert(shash::kSuffixCatalog == effective_hash.suffix);
   const string url = stratum0_ + "/data/" + effective_hash.MakePath();
 
-  FILE *fcatalog = CreateTempFile(dir_temp_ + "/catalog", 0666, "w",
-                                  catalog_path);
-  if (!fcatalog) {
-    PANIC(kLogStderr, "failed to create temp file when loading %s",
-          url.c_str());
+  FILE *fcatalog;
+
+  if (use_local_cache_) {
+    std::string tmp_path = local_cache_dir_ + "/"
+                   + effective_hash.MakePathWithoutSuffix();
+
+    *catalog_path = local_cache_dir_ + "/"
+                   + effective_hash.MakePathWithoutSuffix();
+
+    // file is cached
+    if (FileExists(catalog_path->c_str())) {
+      if (!copy_to_tmp_dir_) {
+        *catalog_hash = effective_hash;
+        return kLoadNew;
+      } else {  // for writable catalog create copy in dir_temp_
+        std::string cache_path = *catalog_path;
+        fcatalog = CreateTempFile(dir_temp_ + "/catalog", 0666, "w",
+                                                                  catalog_path);
+        if (!fcatalog) {
+          PANIC(kLogStderr, "failed to create temp file when loading %s",
+                url.c_str());
+        }
+
+        CopyPath2File(cache_path, fcatalog);
+        fclose(fcatalog);
+
+        *catalog_hash = effective_hash;
+        return kLoadNew;
+      }
+    }
+
+    fcatalog = fopen(catalog_path->c_str(), "w");
+  } else {  // use tmp file
+    fcatalog = CreateTempFile(dir_temp_ + "/catalog", 0666, "w", catalog_path);
+    if (!fcatalog) {
+      PANIC(kLogStderr, "failed to create temp file when loading %s",
+            url.c_str());
+    }
   }
 
   cvmfs::FileSink filesink(fcatalog);
@@ -48,6 +81,19 @@ LoadError SimpleCatalogManager::LoadCatalog(const PathString  &mountpoint,
     unlink(catalog_path->c_str());
     PANIC(kLogStderr, "failed to load %s from Stratum 0 (%d - %s)", url.c_str(),
           retval, download::Code2Ascii(retval));
+  }
+
+  // for writable catalog make copy in dir_temp_ that can be modified
+  if (use_local_cache_ && copy_to_tmp_dir_) {
+    std::string cache_path = *catalog_path;
+    fcatalog = CreateTempFile(dir_temp_ + "/catalog", 0666, "w", catalog_path);
+    if (!fcatalog) {
+      PANIC(kLogStderr, "failed to create temp file when loading %s",
+            url.c_str());
+    }
+
+    CopyPath2File(cache_path, fcatalog);
+    fclose(fcatalog);
   }
 
   *catalog_hash = effective_hash;
