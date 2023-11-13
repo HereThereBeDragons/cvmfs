@@ -258,11 +258,13 @@ bool DirSpec::HasDir(const std::string& name) const {
   return dirs_.find(name) != dirs_.end();
 }
 
-CatalogTestTool::CatalogTestTool(const std::string& name)
-    : name_(name), manifest_(), spooler_(), history_() {}
+CatalogTestTool::CatalogTestTool(const std::string& name,
+                                 const std::string& proxy)
+    : name_(name), proxy_(proxy), manifest_(), spooler_(), history_() {}
 
 bool CatalogTestTool::Init() {
-  if (!InitDownloadManager(true, "")) {
+  std::cerr << "proxy " <<  proxy_ << std::endl;
+  if (!InitDownloadManager(true, proxy_)) {
     return false;
   }
 

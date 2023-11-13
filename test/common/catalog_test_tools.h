@@ -134,7 +134,8 @@ class CatalogTestTool : public ServerTool {
  public:
   typedef std::vector<std::pair<std::string, shash::Any> > History;
 
-  explicit CatalogTestTool(const std::string& name);
+  explicit CatalogTestTool(const std::string& name,
+                           const std::string& proxy = "");
   ~CatalogTestTool();
 
   bool Init();
@@ -188,6 +189,7 @@ class CatalogTestTool : public ServerTool {
       perf::Statistics* stats, const std::string local_cache_dir);
 
   const std::string name_;
+  const std::string proxy_;
 
   std::string stratum0_;
   std::string public_key_;
