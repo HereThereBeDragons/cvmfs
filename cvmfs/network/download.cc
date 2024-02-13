@@ -70,20 +70,25 @@ using namespace std;  // NOLINT
 
 namespace download {
 
-DataTubeElement* DownloadManager::GetUnusedDataTubeElement() {
-  DataTubeElement* ele = data_tube_empty_elements_->TryPopFront();
+Tube<DataTubeElement>* DownloadManager::GetUnusedDataTube() {
+  Tube<DataTubeElement> *tube = tube_of_tubes_empty_elements_->TryPopFront();
 
-  if (ele == NULL) {
-    char *data = static_cast<char*>(malloc(CURL_MAX_HTTP_HEADER));
-    ele = new DataTubeElement(data, CURL_MAX_HTTP_HEADER, kActionUnused);
+  if (tube == NULL) {
+    tube = new Tube<DataTubeElement>();
+
+    for (size_t i = 0; i < 500; i++) {
+      char *data = static_cast<char*>(malloc(CURL_MAX_HTTP_HEADER));
+      DataTubeElement *ele = 
+                new DataTubeElement(data, CURL_MAX_HTTP_HEADER, kActionUnused);
+      tube->EnqueueBack(ele);
+    }
   }
 
-  return ele;
+  return tube;
 }
 
-void DownloadManager::PutDataTubeElementToReuse(DataTubeElement* ele) {
-  ele->action = kActionUnused;
-  data_tube_empty_elements_->EnqueueBack(ele);
+void DownloadManager::PutDataTubeToReuse(Tube<DataTubeElement> *tube) {
+  tube_of_tubes_empty_elements_->EnqueueBack(tube);
 }
 
 /**
@@ -1711,7 +1716,7 @@ DownloadManager::~DownloadManager() {
     health_check_.Reset();
   }
 
-  data_tube_empty_elements_.Destroy();
+  tube_of_tubes_empty_elements_.Destroy();
 
   if (atomic_xadd32(&multi_threaded_, 0) == 1) {
     // Shutdown I/O thread
@@ -1831,7 +1836,7 @@ DownloadManager::DownloadManager(const unsigned max_pool_handles,
 
   InitHeaders();
 
-  data_tube_empty_elements_ = new Tube<DataTubeElement>(200000);
+  tube_of_tubes_empty_elements_ = new Tube<Tube<DataTubeElement>>();
 
   curl_multi_ = curl_multi_init();
   assert(curl_multi_ != NULL);
@@ -1869,11 +1874,18 @@ void DownloadManager::Spawn() {
 
   atomic_inc32(&multi_threaded_);
 
-  for (size_t i = 0; i < 10000; i++) {
-    char *data = static_cast<char*>(malloc(CURL_MAX_WRITE_SIZE));
-    DataTubeElement *ele = new DataTubeElement(data, CURL_MAX_WRITE_SIZE,
-                                               kActionUnused);
-    data_tube_empty_elements_->EnqueueBack(ele);
+  // TODO init tube_of_tubes_empty_elements_
+  for (size_t tube_i = 0; tube_i < 5; tube_i++) {
+    Tube<DataTubeElement>* data_tube_empty_elements = 
+                                                   new Tube<DataTubeElement>();
+    for (size_t i = 0; i < 10000; i++) {
+      char *data = static_cast<char*>(malloc(CURL_MAX_WRITE_SIZE));
+      DataTubeElement *ele = new DataTubeElement(data, CURL_MAX_WRITE_SIZE,
+                                                kActionUnused);
+      data_tube_empty_elements->EnqueueBack(ele);
+    }
+
+    tube_of_tubes_empty_elements_->EnqueueBack(data_tube_empty_elements);
   }
 
   if (health_check_.UseCount() > 0) {
@@ -1937,6 +1949,7 @@ Failures DownloadManager::Fetch(JobInfo *info) {
     }
     if (!info->IsValidDataTube()) {
       info->CreateDataTube();
+      info->SetDataTubeEmptyElements(GetUnusedDataTube());
     }
 
     // LogCvmfs(kLogDownload, kLogDebug, "send job to thread, pipe %d %d",
@@ -2003,10 +2016,13 @@ Failures DownloadManager::Fetch(JobInfo *info) {
                "(id %" PRId64 ") FAILURE - Unknown DataTube Element Action: %d",
                info->id(), ele->action);
       }
-      PutDataTubeElementToReuse(ele);
+      info->PutDataTubeElementToReuse(ele);
     } while (is_running);
 
     info->GetPipeJobResultPtr()->Read<download::Failures>(&result);
+    Tube<DataTubeElement>* tube = info->data_tube_empty_elements();
+    info->SetDataTubeEmptyElements(NULL);
+    PutDataTubeToReuse(tube);
     // LogCvmfs(kLogDownload, kLogDebug, "got result %d", result);
   } else {
     MutexLockGuard l(lock_synchronous_mode_);

@@ -260,8 +260,8 @@ class DownloadManager {  // NOLINT(clang-analyzer-optin.performance.Padding)
   unsigned EscapeHeader(const std::string &header, char *escaped_buf,
                         size_t buf_size);
 
-  DataTubeElement* GetUnusedDataTubeElement();
-  void PutDataTubeElementToReuse(DataTubeElement* ele);
+  Tube<DataTubeElement>* GetUnusedDataTube();
+  void PutDataTubeToReuse(Tube<DataTubeElement> *tube);
 
   inline std::vector<ProxyInfo> *current_proxy_group() const {
     return (opt_proxy_groups_ ?
@@ -441,9 +441,9 @@ class DownloadManager {  // NOLINT(clang-analyzer-optin.performance.Padding)
   SslCertificateStore ssl_certificate_store_;
 
   /**
-   * Tube to hold empty elements use in JobInfo data_tube_
+   * Tube holding tubes that hold empty elements use in JobInfo data_tube_
    */
-  UniquePtr<Tube<DataTubeElement> > data_tube_empty_elements_;
+  UniquePtr<Tube<Tube<DataTubeElement>> > tube_of_tubes_empty_elements_;
 };  // DownloadManager
 
 }  // namespace download
