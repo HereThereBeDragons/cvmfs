@@ -74,10 +74,10 @@ Tube<DataTubeElement>* DownloadManager::GetUnusedDataTube() {
   Tube<DataTubeElement> *tube = tube_of_tubes_empty_elements_->TryPopFront();
 
   if (tube == NULL) {
-    tube = new Tube<DataTubeElement>();
+    tube = new Tube<DataTubeElement>(10000);
 
     for (size_t i = 0; i < 500; i++) {
-      char *data = static_cast<char*>(malloc(CURL_MAX_HTTP_HEADER));
+      char *data = static_cast<char*>(smalloc(CURL_MAX_HTTP_HEADER));
       DataTubeElement *ele = 
                 new DataTubeElement(data, CURL_MAX_HTTP_HEADER, kActionUnused);
       tube->EnqueueBack(ele);
@@ -88,7 +88,11 @@ Tube<DataTubeElement>* DownloadManager::GetUnusedDataTube() {
 }
 
 void DownloadManager::PutDataTubeToReuse(Tube<DataTubeElement> *tube) {
-  tube_of_tubes_empty_elements_->EnqueueBack(tube);
+  Tube<Tube<DataTubeElement>>::Link *link =
+                            tube_of_tubes_empty_elements_->TryEnqueueBack(tube);
+  if (link == NULL) {  // queue is at max capacity
+    delete tube;
+  }
 }
 
 /**
@@ -279,14 +283,15 @@ static size_t CallbackCurlData(void *ptr, size_t size, size_t nmemb,
   // the check for kFailOk is to check when using the DataTube that there was
   // not early some cancellation of the download due to error
   // TODO(heretherebedragons) we might want to have this as an atomic variable?
-  if (num_bytes == 0 || info->error_code() != kFailOk) {
+  if (num_bytes == 0 || info->stop_data_download()) {
     return 0;
   }
 
   if (info->IsValidDataTube()) {
-    char *data = static_cast<char*>(malloc(num_bytes));
-    memcpy(data, ptr, num_bytes);
-    DataTubeElement *ele = new DataTubeElement(data, num_bytes, kActionData);
+    DataTubeElement *ele  = info->GetUnusedDataTubeElement();
+    memcpy(ele->data, ptr, num_bytes);
+    ele->size = num_bytes;
+    ele->action = kActionData;
     info->GetDataTubePtr()->EnqueueBack(ele);
   } else {  // TODO(heretherebedragons) i think we need this here to support
             // the non-multihreaded version?
@@ -592,6 +597,15 @@ int DownloadManager::CallbackCurlSocket(CURL * /* easy */,
 }
 
 
+struct TupelJobDone {
+  JobInfo* info;
+  int curl_error;
+  CURL *easy_handle;
+
+  TupelJobDone(JobInfo* i, int error, CURL *handle) :
+                             info(i), curl_error(error), easy_handle(handle) { }
+};
+
 /**
  * Worker thread event loop.  Waits on new JobInfo structs on a pipe.
  */
@@ -618,7 +632,43 @@ void *DownloadManager::MainDownload(void *data) {
   int still_running = 0;
   struct timeval timeval_start, timeval_stop;
   gettimeofday(&timeval_start, NULL);
+
+  // vector of jobinfo elements that are considered finished from CURL pov
+  // but data processing in Fetch() might not be finished yet. Processing must
+  // be finished before being able to call VerifyAndFinalize()
+  std::vector<TupelJobDone> vec_curl_done;
   while (true) {
+    // Check if transfers that are completed have finished their data processing
+    for (size_t i = 0; i < vec_curl_done.size(); ++i) {
+      JobInfo *info = vec_curl_done[i].info;
+      int curl_error = vec_curl_done[i].curl_error;
+      CURL *easy_handle = vec_curl_done[i].easy_handle;
+
+      if (info->GetDataTubePtr()->IsEmpty()) {  // data processing done
+        if (download_mgr->VerifyAndFinalize(curl_error, info)) {
+            curl_multi_add_handle(download_mgr->curl_multi_, easy_handle);
+            curl_multi_socket_action(download_mgr->curl_multi_,
+                                     CURL_SOCKET_TIMEOUT,
+                                     0,
+                                     &still_running);
+        } else {
+          // Return easy handle into pool and write result back
+          download_mgr->ReleaseCurlHandle(easy_handle);
+
+          if (info->IsValidDataTube()) {
+            DataTubeElement *ele = info->GetUnusedDataTubeElement();
+            ele->action = kActionStop;
+            info->GetDataTubePtr()->EnqueueBack(ele);
+          }
+          info->GetPipeJobResultPtr()->
+                              Write<download::Failures>(info->error_code());
+        }
+
+        vec_curl_done.erase(vec_curl_done.begin() + i);
+        --i;
+      }
+    }
+
     int timeout;
     if (still_running) {
       /* NOTE: The following might degrade the performance for many small files
@@ -632,7 +682,7 @@ void *DownloadManager::MainDownload(void *data) {
       */
       timeout = 1;
     } else {
-      timeout = -1;
+      timeout = 1;
       gettimeofday(&timeval_stop, NULL);
       int64_t delta = static_cast<int64_t>(
         1000 * DiffTimeSeconds(timeval_start, timeval_stop));
@@ -723,12 +773,15 @@ void *DownloadManager::MainDownload(void *data) {
 
         curl_multi_remove_handle(download_mgr->curl_multi_, easy_handle);
 
-        // let's notify CURL is done and wait for the finishing of
-        // decompressing the data so that VerifyAndFinalize executes correctly
+        // let's notify CURL is done and queue it up and wait for finishing the
+        // data processing so that VerifyAndFinalize executes correctly
         if (info->IsValidDataTube()) {
-          DataTubeElement *ele = new DataTubeElement(kActionEndOfData);
+          DataTubeElement *ele = info->GetUnusedDataTubeElement();
+          ele->action = kActionEndOfData;
           info->GetDataTubePtr()->EnqueueBack(ele);
-          info->GetDataTubePtr()->Wait();
+          vec_curl_done.emplace_back(
+                                   TupelJobDone(info, curl_error, easy_handle));
+          continue;
         }
 
         if (download_mgr->VerifyAndFinalize(curl_error, info)) {
@@ -961,6 +1014,7 @@ void DownloadManager::InitializeRequest(JobInfo *info, CURL *handle) {
   // Initialize internal download state
   info->SetCurlHandle(handle);
   info->SetErrorCode(kFailOk);
+  info->SetStopDataDownload(false);
   info->SetHttpCode(-1);
   info->SetFollowRedirects(follow_redirects_);
   info->SetNumUsedProxies(1);
@@ -1677,11 +1731,11 @@ bool DownloadManager::VerifyAndFinalize(const int curl_error, JobInfo *info) {
       // proxy failover. This will EIO the call application.
       const bool interrupted = Interrupted(fqrn_, info);
       if (!interrupted) {
-        info->SetErrorCode(kFailOk);
+        info->SetStopDataDownload(false);
       }
       return !interrupted;
     }
-    info->SetErrorCode(kFailOk);
+    info->SetStopDataDownload(false);
     return true;  // try again
   }
 
@@ -1836,7 +1890,7 @@ DownloadManager::DownloadManager(const unsigned max_pool_handles,
 
   InitHeaders();
 
-  tube_of_tubes_empty_elements_ = new Tube<Tube<DataTubeElement>>();
+  tube_of_tubes_empty_elements_ = new Tube<Tube<DataTubeElement>>(100);
 
   curl_multi_ = curl_multi_init();
   assert(curl_multi_ != NULL);
@@ -1994,16 +2048,18 @@ Failures DownloadManager::Fetch(JobInfo *info) {
                                      "(id %" PRId64 ") failed to decompress %s",
                                      info->id(), info->url()->c_str());
               info->SetErrorCode(kFailBadData);
+              info->SetStopDataDownload(true);
             } else if (retval == zlib::kStreamIOError) {
               LogCvmfs(kLogDownload, kLogSyslogErr,
                             "(id %" PRId64 ") decompressing %s, local IO error",
                             info->id(), info->url()->c_str());
               info->SetErrorCode(kFailLocalIO);
+              info->SetStopDataDownload(true);
             }
           } else {
             int64_t written = info->sink()->Write(ptr, num_bytes);
             if (written < 0 || static_cast<uint64_t>(written) != num_bytes) {
-              LogCvmfs(kLogDownload, kLogDebug, "(id %" PRId64 ") "
+              PANIC(kLogStderr | kLogDebug, "(id %" PRId64 ") "
                "Failed to perform write of %zu bytes to sink %s with errno %ld",
                info->id(), num_bytes, info->sink()->Describe().c_str(),
                written);
