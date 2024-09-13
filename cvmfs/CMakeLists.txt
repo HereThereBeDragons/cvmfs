@@ -60,9 +60,11 @@ if (BUILD_CVMFS OR BUILD_LIBCVMFS)
        compression/compression.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
+       compression/compressor_zstd.cc
        compression/decompression.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
+       compression/decompressor_zstd.cc
        compression/input_cache.cc
        compression/input_file.cc
        compression/input_mem.cc
@@ -149,9 +151,11 @@ if (BUILD_CVMFS)
                   compression/compression.cc
                   compression/compressor_echo.cc
                   compression/compressor_zlib.cc
+                  compression/compressor_zstd.cc
                   compression/decompression.cc
                   compression/decompressor_echo.cc
                   compression/decompressor_zlib.cc
+                  compression/decompressor_zstd.cc
                   compression/input_cache.cc
                   compression/input_file.cc
                   compression/input_mem.cc
@@ -165,6 +169,7 @@ if (BUILD_CVMFS)
                          cvmfs_crypto
                          cvmfs_util
                          ${ZLIB_LIBRARIES}
+                         ${ZSTD_LIBRARIES}
                          ${RT_LIBRARY}
                          pthread
   )
@@ -280,6 +285,7 @@ if (BUILD_CVMFS)
        ${PACPARSER_LIBRARIES}
        ${SQLITE3_LIBRARY}
        ${ZLIB_LIBRARIES}
+       ${ZSTD_LIBRARIES}
        ${SPARSEHASH_LIBRARIES}
        ${LEVELDB_LIBRARIES}
        ${PROTOBUF_LITE_LIBRARY}
@@ -431,6 +437,7 @@ if (BUILD_LIBCVMFS)
                                  ${LEVELDB_LIBRARIES}
                                  ${PACPARSER_LIBRARIES}
                                  ${ZLIB_LIBRARIES}
+                                 ${ZSTD_LIBRARIES}
                                  ${VJSON_LIBRARIES}
                                  ${PROTOBUF_LITE_LIBRARY}
   )
@@ -519,9 +526,11 @@ if (BUILD_LIBCVMFS_CACHE)
                   compression/compression.cc
                   compression/compressor_echo.cc
                   compression/compressor_zlib.cc
+                  compression/compressor_zstd.cc
                   compression/decompression.cc
                   compression/decompressor_echo.cc
                   compression/decompressor_zlib.cc
+                  compression/decompressor_zstd.cc
                   compression/input_cache.cc
                   compression/input_file.cc
                   compression/input_mem.cc
@@ -539,6 +548,7 @@ if (BUILD_LIBCVMFS_CACHE)
                          cvmfs_crypto
                          cvmfs_util_debug
                          ${ZLIB_LIBRARIES}
+                         ${ZSTD_LIBRARIES}
                          pthread
   )
 
@@ -609,9 +619,11 @@ if (BUILD_SERVER)
        compression/compression.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
+       compression/compressor_zstd.cc
        compression/decompression.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
+       compression/decompressor_zstd.cc
        compression/input_cache.cc
        compression/input_file.cc
        compression/input_mem.cc
@@ -722,6 +734,7 @@ if (BUILD_SERVER)
         ${CURL_LIBRARIES}
         ${CARES_LIBRARIES} ${CARES_LDFLAGS}
         ${ZLIB_LIBRARIES}
+        ${ZSTD_LIBRARIES}
         ${OPENSSL_LIBRARIES}
         ${RT_LIBRARY}
         ${VJSON_LIBRARIES}
@@ -764,9 +777,11 @@ if (BUILD_SERVER)
        compression/compression.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
+       compression/compressor_zstd.cc
        compression/decompression.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
+       compression/decompressor_zstd.cc
        compression/input_cache.cc
        compression/input_file.cc
        compression/input_mem.cc
@@ -847,6 +862,7 @@ if (BUILD_SERVER)
         ${OPENSSL_LIBRARIES}
         ${SQLITE3_LIBRARY}
         ${ZLIB_LIBRARIES}
+        ${ZSTD_LIBRARIES}
         ${VJSON_LIBRARIES}
         ${CAP_LIBRARIES}
         ${LibArchive_LIBRARY}
@@ -885,9 +901,11 @@ if (BUILD_SERVER)
        compression/compression.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
+       compression/compressor_zstd.cc
        compression/decompression.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
+       compression/decompressor_zstd.cc
        compression/input_cache.cc
        compression/input_file.cc
        compression/input_mem.cc
@@ -1077,9 +1095,11 @@ if(BUILD_RECEIVER)
        compression/compression.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
+       compression/compressor_zstd.cc
        compression/decompression.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
+       compression/decompressor_zstd.cc
        compression/input_cache.cc
        compression/input_file.cc
        compression/input_mem.cc
@@ -1149,6 +1169,7 @@ if(BUILD_RECEIVER)
         ${VJSON_LIBRARIES}
         ${OPENSSL_LIBRARIES}
         ${ZLIB_LIBRARIES}
+        ${ZSTD_LIBRARIES}
         ${RT_LIBRARY}
         ${LibArchive_LIBRARY}
         pthread
@@ -1249,9 +1270,11 @@ if (BUILD_PRELOADER)
                   compression/compression.cc
                   compression/compressor_echo.cc
                   compression/compressor_zlib.cc
+                  compression/compressor_zstd.cc
                   compression/decompression.cc
                   compression/decompressor_echo.cc
                   compression/decompressor_zlib.cc
+                  compression/decompressor_zstd.cc
                   compression/input_cache.cc
                   compression/input_file.cc
                   compression/input_mem.cc
@@ -1318,6 +1341,7 @@ if (BUILD_PRELOADER)
                         ${CURL_LIBRARIES}
                         ${CARES_LIBRARIES} ${CARES_LDFLAGS}
                         ${ZLIB_LIBRARIES}
+                        ${ZSTD_LIBRARIES}
                         ${OPENSSL_LIBRARIES}
                         ${RT_LIBRARY}
                         ${UUID_LIBRARIES}
