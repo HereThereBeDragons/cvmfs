@@ -700,9 +700,11 @@ CacheManager *FileSystem::SetupPosixCacheMgr(const string &instance) {
   UniquePtr<PosixCacheManager> cache_mgr(PosixCacheManager::Create(
     settings.cache_path,
     settings.is_alien,
+    perf::StatisticsTemplate("cache." + instance, statistics_),
     settings.avoid_rename ? PosixCacheManager::kRenameLink
                           : PosixCacheManager::kRenameNormal,
-    settings.do_refcount));
+    settings.do_refcount),
+    );
   if (!cache_mgr.IsValid()) {
     boot_error_ = "Failed to setup posix cache '" + instance + "' in " +
                   settings.cache_path + ": " + strerror(errno);

@@ -34,7 +34,19 @@ class FdRefcountMgr {
     FdRefcountInfo(): refcount(-1) { }
   };
 
-  FdRefcountMgr();
+  explicit FdRefcountMgr(perf::StatisticsTemplate statistics);
+
+  struct Counters {
+    perf::Counter *n_open;
+    perf::Counter *n_max_open;
+
+    explicit Counters(perf::StatisticsTemplate statistics) {
+      n_open = statistics.RegisterTemplated("n_getsize",
+        "Number of concurrently open objects from the refcounted cache");
+      n_max_open = statistics.RegisterTemplated("n_close",
+        "Max number of concurrently open objects from the refcounted cache");
+    }
+  };
 
   ~FdRefcountMgr();
 
@@ -70,6 +82,8 @@ class FdRefcountMgr {
    */
   SmallHashDynamic<shash::Any, int> map_fd_;
   pthread_mutex_t *lock_cache_refcount_;
+
+  Counters counters_;
 };
 
 #endif  // CVMFS_FD_REFCOUNT_MGR_H_

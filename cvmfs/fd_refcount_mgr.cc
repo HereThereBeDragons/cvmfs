@@ -103,7 +103,8 @@ FdRefcountMgr::~FdRefcountMgr() {
   free(lock_cache_refcount_);
 }
 
-FdRefcountMgr::FdRefcountMgr() {
+FdRefcountMgr::FdRefcountMgr(perf::StatisticsTemplate statistic)
+                                                        : counters_(statistic) {
   const shash::Any hash_null;
   map_fd_.Init(16, hash_null, hasher_any);
   map_refcount_.Init(16, -1, hasher_int);

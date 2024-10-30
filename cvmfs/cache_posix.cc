@@ -272,11 +272,12 @@ bool PosixCacheManager::InitCacheDirectory(const string &cache_path) {
 PosixCacheManager *PosixCacheManager::Create(
   const string &cache_path,
   const bool alien_cache,
+  perf::StatisticsTemplate statistics,
   const RenameWorkarounds rename_workaround,
   const bool do_refcount)
 {
   UniquePtr<PosixCacheManager> cache_manager(
-    new PosixCacheManager(cache_path, alien_cache, do_refcount));
+    new PosixCacheManager(cache_path, alien_cache, statistics, do_refcount));
   assert(cache_manager.IsValid());
 
   cache_manager->rename_workaround_ = rename_workaround;
@@ -420,6 +421,11 @@ int PosixCacheManager::Open(const LabeledObject &object) {
     result = open(path.c_str(), O_RDONLY);
   }
   if (result >= 0) {
+    perf::Inc(counters_.n_open);
+
+    if (counters_.n_open->Get() > counters_.n_max_open->Get()) {
+      counters_.n_max_open->Set(counters_.n_open->Get());
+    }
     LogCvmfs(kLogCache, kLogDebug, "hit %s", path.c_str());
     // platform_disable_kcache(result);
     quota_mgr_->Touch(object.id);

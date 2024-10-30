@@ -48,6 +48,18 @@ class PosixCacheManager : public CacheManager {
   FRIEND_TEST(T_CacheManager, TearDown2ReadOnly);
 
  public:
+  struct Counters {
+    perf::Counter *n_open;
+    perf::Counter *n_max_open;
+
+    explicit Counters(perf::StatisticsTemplate statistics) {
+      n_open = statistics.RegisterTemplated("n_getsize",
+        "Number of concurrently open objects from the cache");
+      n_max_open = statistics.RegisterTemplated("n_close",
+        "Max number of concurrently open objects from the cache");
+    }
+  };
+
   enum CacheModes {
     kCacheReadWrite = 0,
     kCacheReadOnly,
@@ -72,6 +84,7 @@ class PosixCacheManager : public CacheManager {
   static PosixCacheManager *Create(
     const std::string &cache_path,
     const bool alien_cache,
+    perf::StatisticsTemplate statistics,
     const RenameWorkarounds rename_workaround = kRenameNormal,
     const bool do_refcount = false);
   virtual ~PosixCacheManager() { }
@@ -140,6 +153,7 @@ class PosixCacheManager : public CacheManager {
   };
 
   PosixCacheManager(const std::string &cache_path, const bool alien_cache,
+                    perf::StatisticsTemplate statistics,
                     const bool do_refcount = false)
     : cache_path_(cache_path)
     , txn_template_path_(cache_path_ + "/txn/fetchXXXXXX")
@@ -149,7 +163,8 @@ class PosixCacheManager : public CacheManager {
     , reports_correct_filesize_(true)
     , is_tmpfs_(false)
     , do_refcount_(do_refcount)
-    , fd_mgr_(new FdRefcountMgr())
+    , fd_mgr_(new FdRefcountMgr(statistics))
+    , counters_(statistics)
   {
     atomic_init32(&no_inflight_txns_);
   }
@@ -197,6 +212,8 @@ class PosixCacheManager : public CacheManager {
    */
   bool do_refcount_;
   UniquePtr<FdRefcountMgr> fd_mgr_;
+
+  Counters counters_;
 };  // class PosixCacheManager
 
 #endif  // CVMFS_CACHE_POSIX_H_
