@@ -710,7 +710,9 @@ void *DownloadManager::MainDownload(void *data) {
       */
       timeout = 1;
     } else {
-      if (download_mgr->use_parallel_download_) {
+      // we still need to process the jobs in vec_curl_done, so dont block
+      // indefinitely until some CURL event happens
+      if (download_mgr->use_parallel_download_ && vec_curl_done.size() > 0) {
         timeout = 1;
       } else {
         timeout = -1;

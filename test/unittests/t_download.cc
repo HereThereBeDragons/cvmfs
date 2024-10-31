@@ -566,7 +566,7 @@ TEST_F(T_Download, ParallelDownload) {
   cvmfs::FileSink filesink(fdest);
 
   JobInfo info(&src_url, false /* compressed */, false /* probe hosts */,
-              NULL, &filesink);
+               NULL, &filesink);
   download_mgr.Fetch(&info);
   EXPECT_EQ(file_server.num_processed_requests(), 1);
   EXPECT_EQ(info.error_code(), kFailOk);
@@ -576,7 +576,7 @@ TEST_F(T_Download, ParallelDownload) {
   parallel_dm->InitParallelDownload(500, 500, 500);
   EXPECT_TRUE(parallel_dm->use_parallel_download());
   JobInfo info2(&src_url, false /* compressed */, false /* probe hosts */,
-              NULL, &filesink);
+               NULL, &filesink);
   parallel_dm->Fetch(&info2);
   EXPECT_EQ(file_server.num_processed_requests(), 2);
   EXPECT_EQ(info2.error_code(), kFailOk);
@@ -594,7 +594,7 @@ TEST_F(T_Download, ParallelDownload) {
   dm->InitParallelDownload(0, 0, 1);
   EXPECT_TRUE(dm->use_parallel_download());
   JobInfo info3(&src_url, false /* compressed */, false /* probe hosts */,
-               NULL, &filesink);
+                NULL, &filesink);
   dm->Fetch(&info3);
   EXPECT_EQ(info3.error_code(), kFailOk);
   fclose(fdest);
