@@ -2,8 +2,8 @@
  * This file is part of the CernVM File System.
  */
 
-#ifndef CVMFS_NETWORK_SINK_MEM_H_
-#define CVMFS_NETWORK_SINK_MEM_H_
+#ifndef CVMFS_NETWORK_SINK_NULL_H_
+#define CVMFS_NETWORK_SINK_NULL_H_
 
 #include <cassert>
 #include <cstring>
@@ -17,20 +17,14 @@
 namespace cvmfs {
 
 /**
- * MemSink is a data sink that writes to a unsigned char* buffer.
- * The buffer has a fixed size, as such reservation of space is necessary.
- * It can use Adopt() to write to a different buffer.
- *
- * By default, MemSink is the owner of the buffer and takes care of its
- * creation and deletion.
+ * NullSink is a "/dev/null"-like data sink that only counts how many bytes
+ * would have been written but DOES NOT SAVE ANY OF THE DATA given to Write().
  */
-class MemSink : public Sink {
+// try https://stackoverflow.com/questions/3065154/undefined-reference-to-vtable
+class NullSink : public Sink {
  public:
-  MemSink() : Sink(true), size_(0), pos_(0),
-              data_(NULL), max_size_(kMaxMemSize) { }
-  explicit MemSink(size_t size);
-  MemSink(size_t size, size_t max_size);
-  virtual ~MemSink() { FreeData(); }
+  NullSink() : Sink(true), dropped_bytes_(0) { }
+  virtual ~NullSink() { }
 
   /**
    * Appends data to the sink
@@ -41,7 +35,8 @@ class MemSink : public Sink {
    * @returns on success: number of bytes written (can be less than requested)
    *          on failure: -errno.
    */
-  virtual int64_t Write(const void *buf, uint64_t sz);
+  virtual int64_t Write(const void */*buf*/, uint64_t sz)
+                      { dropped_bytes_ += sz; return static_cast<int64_t>(sz); }
 
   /**
    * Truncate all written data and start over at position zero.
@@ -49,7 +44,7 @@ class MemSink : public Sink {
    * @returns Success = 0
    *          Failure = -errno
    */
-  virtual int Reset();
+  virtual int Reset() { dropped_bytes_ = 0; return 0; }
 
   /**
    * Purges all resources leaving the sink in an invalid state.
@@ -60,23 +55,19 @@ class MemSink : public Sink {
    * @returns Success = 0
    *          Failure = -errno
    */
-  virtual int Purge() {
-    return Reset();
-  }
+  virtual int Purge() { return Reset(); }
 
   /**
     * @returns true if the object is correctly initialized.
    */
-  virtual bool IsValid();
+  virtual bool IsValid() { return true; }
 
   /**
    * Commit data to the sink
    * @returns success = 0
    *          failure = -errno
    */
-  virtual int Flush() {
-    return 0;
-  }
+  virtual int Flush() { return 0; }
 
   /**
    * Reserves new space in sinks that require reservation (see RequiresReserve)
@@ -94,7 +85,7 @@ class MemSink : public Sink {
    * @returns success = true
    *          failure = false
    */
-  virtual bool Reserve(size_t size);
+  virtual bool Reserve(size_t /*size*/) { Reset(); return true; }
 
   /**
    * Returns if the specific sink type needs reservation of (data) space
@@ -102,47 +93,20 @@ class MemSink : public Sink {
    * @returns true  - reservation is needed
    *          false - no reservation is needed
    */
-  virtual bool RequiresReserve() {
-    return true;
-  }
+  virtual bool RequiresReserve() { return false; }
 
   /**
    * Return a string representation describing the type of sink and its status
    */
-  virtual std::string Describe();
+  virtual std::string Describe()
+             { return "Null sink with size: " + StringifyUint(dropped_bytes_); }
 
-  /**
-   * Allows the sink to adopt data that was initialized outside this class.
-   * The sink can become the new owner of the data, or not.
-   */
-  void Adopt(size_t size, size_t pos, unsigned char *data,
-             bool is_owner = true);
-
-  size_t size() { return size_; }
-  size_t pos() { return pos_; }
-  unsigned char* data() { return data_; }
-
-  bool SetPos(size_t pos) { if (pos <= size_) { pos_ = pos; return true; }
-                            return false; }
-
-  /**
-   * Do not download files larger than 1M into memory.
-   */
-  static const size_t kMaxMemSize = 1024ul * 1024ul;
+  size_t dropped_bytes() { return dropped_bytes_; }
 
  private:
-  void FreeData() {
-    if (is_owner_) {
-      free(data_);
-    }
-  }
-
-  size_t size_;
-  size_t pos_;
-  unsigned char *data_;
-  const size_t max_size_;
+  size_t dropped_bytes_;
 };
 
 }  // namespace cvmfs
 
-#endif  // CVMFS_NETWORK_SINK_MEM_H_
+#endif  // CVMFS_NETWORK_SINK_NULL_H_
