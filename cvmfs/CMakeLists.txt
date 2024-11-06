@@ -57,11 +57,11 @@ if (BUILD_CVMFS OR BUILD_LIBCVMFS)
        catalog_mgr_client.cc
        catalog_sql.cc
        clientctx.cc
-       compression/compression.cc
+       compression/compressor.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
        compression/compressor_zstd.cc
-       compression/decompression.cc
+       compression/decompressor.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
        compression/decompressor_zstd.cc
@@ -148,11 +148,11 @@ if (BUILD_CVMFS)
   # /usr/bin/cvmfs_fsck
   #
   add_executable (cvmfs_fsck
-                  compression/compression.cc
+                  compression/compressor.cc
                   compression/compressor_echo.cc
                   compression/compressor_zlib.cc
                   compression/compressor_zstd.cc
-                  compression/decompression.cc
+                  compression/decompressor.cc
                   compression/decompressor_echo.cc
                   compression/decompressor_zlib.cc
                   compression/decompressor_zstd.cc
@@ -523,11 +523,11 @@ if (BUILD_LIBCVMFS_CACHE)
                   cache_plugin/cvmfs_cache_posix.cc
                   cache.cc
                   cache_posix.cc
-                  compression/compression.cc
+                  compression/compressor.cc
                   compression/compressor_echo.cc
                   compression/compressor_zlib.cc
                   compression/compressor_zstd.cc
-                  compression/decompression.cc
+                  compression/decompressor.cc
                   compression/decompressor_echo.cc
                   compression/decompressor_zlib.cc
                   compression/decompressor_zstd.cc
@@ -616,11 +616,11 @@ if (BUILD_SERVER)
        catalog_rw.cc
        catalog_virtual.cc
        clientctx.cc
-       compression/compression.cc
+       compression/compressor.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
        compression/compressor_zstd.cc
-       compression/decompression.cc
+       compression/decompressor.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
        compression/decompressor_zstd.cc
@@ -774,11 +774,11 @@ if (BUILD_SERVER)
        catalog_mgr_ro.cc
        catalog_mgr_rw.cc
        catalog_virtual.cc
-       compression/compression.cc
+       compression/compressor.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
        compression/compressor_zstd.cc
-       compression/decompression.cc
+       compression/decompressor.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
        compression/decompressor_zstd.cc
@@ -898,11 +898,11 @@ if (BUILD_SERVER)
   #
   set (CVMFS_PUBLISH_SOURCES
        backoff.cc
-       compression/compression.cc
+       compression/compressor.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
        compression/compressor_zstd.cc
-       compression/decompression.cc
+       compression/decompressor.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
        compression/decompressor_zstd.cc
@@ -1092,11 +1092,11 @@ if(BUILD_RECEIVER)
        catalog_sql.cc
        catalog_mgr_ro.cc
        catalog_mgr_rw.cc
-       compression/compression.cc
+       compression/compressor.cc
        compression/compressor_echo.cc
        compression/compressor_zlib.cc
        compression/compressor_zstd.cc
-       compression/decompression.cc
+       compression/decompressor.cc
        compression/decompressor_echo.cc
        compression/decompressor_zlib.cc
        compression/decompressor_zstd.cc
@@ -1267,11 +1267,11 @@ if (BUILD_PRELOADER)
                   backoff.cc
                   catalog.cc
                   catalog_sql.cc
-                  compression/compression.cc
+                  compression/compressor.cc
                   compression/compressor_echo.cc
                   compression/compressor_zlib.cc
                   compression/compressor_zstd.cc
-                  compression/decompression.cc
+                  compression/decompressor.cc
                   compression/decompressor_echo.cc
                   compression/decompressor_zlib.cc
                   compression/decompressor_zstd.cc

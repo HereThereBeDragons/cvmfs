@@ -6,7 +6,7 @@
 
 #include <cassert>
 
-#include "decompression.h"
+#include "decompressor.h"
 
 namespace zlib {
 

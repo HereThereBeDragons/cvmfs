@@ -13,7 +13,7 @@
 #include "catalog_rw.h"
 #include "catalog_sql.h"
 #include "catalog_virtual.h"
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_path.h"
 #include "crypto/hash.h"
 #include "network/sink_path.h"

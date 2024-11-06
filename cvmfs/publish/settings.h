@@ -11,7 +11,7 @@
 #include <map>
 #include <string>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "crypto/hash.h"
 #include "sync_union.h"
 #include "upload_spooler_definition.h"

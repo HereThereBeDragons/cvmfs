@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "catalog_mgr.h"
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_mem.h"
 #include "crypto/hash.h"
 #include "directory_entry.h"

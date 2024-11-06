@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "decompression.h"
+#include "decompressor.h"
 #include "duplex_zlib.h"
 
 namespace zlib {

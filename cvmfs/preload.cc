@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_mem.h"
 #include "compression/input_path.h"
 #include "crypto/signature.h"

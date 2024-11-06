@@ -49,7 +49,7 @@
 #include <map>
 #include <vector>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_path.h"
 #include "crypto/hash.h"
 #include "crypto/signature.h"

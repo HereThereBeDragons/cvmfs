@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "compression/decompression.h"
+#include "compression/decompressor.h"
 
 #include "catalog_mgr.h"
 

@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "compression.h"
+#include "compressor.h"
 #include "duplex_zlib.h"
 
 namespace zlib {

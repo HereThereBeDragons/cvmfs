@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/compressor_zlib.h"
 #include "crypto/hash.h"
 #include "swissknife.h"

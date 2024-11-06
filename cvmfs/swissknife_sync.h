@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "repository_tag.h"
 #include "swissknife.h"
 #include "upload.h"

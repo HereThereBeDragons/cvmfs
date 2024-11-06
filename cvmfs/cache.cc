@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include <string>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_cache.h"
 #include "crypto/hash.h"
 #include "directory_entry.h"

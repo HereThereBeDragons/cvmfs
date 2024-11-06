@@ -5,7 +5,7 @@
 #include "cvmfs_config.h"
 #include "catalog_mgr_ro.h"
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_path.h"
 #include "network/download.h"
 #include "network/sink_file.h"

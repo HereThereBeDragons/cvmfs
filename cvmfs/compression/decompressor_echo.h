@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "decompression.h"
+#include "decompressor.h"
 
 namespace zlib {
 

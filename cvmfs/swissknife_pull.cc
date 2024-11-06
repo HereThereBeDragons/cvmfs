@@ -24,8 +24,8 @@
 #include <vector>
 
 #include "catalog.h"
-#include "compression/compression.h"
-#include "compression/decompression.h"
+#include "compression/compressor.h"
+#include "compression/decompressor.h"
 #include "compression/input_file.h"
 #include "compression/input_mem.h"
 #include "compression/input_path.h"

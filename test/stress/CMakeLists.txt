@@ -2,11 +2,11 @@ set (CVMFS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/cvmfs")
 
 add_executable(s3benchmark
                test/stress/s3benchmark.cc
-               ${CVMFS_SOURCE_DIR}/compression/compression.cc
+               ${CVMFS_SOURCE_DIR}/compression/compressor.cc
                ${CVMFS_SOURCE_DIR}/compression/compressor_echo.cc
                ${CVMFS_SOURCE_DIR}/compression/compressor_zlib.cc
                ${CVMFS_SOURCE_DIR}/compression/compressor_zstd.cc
-               ${CVMFS_SOURCE_DIR}/compression/decompression.cc
+               ${CVMFS_SOURCE_DIR}/compression/decompressor.cc
                ${CVMFS_SOURCE_DIR}/compression/decompressor_echo.cc
                ${CVMFS_SOURCE_DIR}/compression/decompressor_zlib.cc
                ${CVMFS_SOURCE_DIR}/compression/decompressor_zstd.cc

@@ -9,8 +9,8 @@
 #include <string>
 
 #include "catalog.h"
-#include "compression/compression.h"
-#include "compression/decompression.h"
+#include "compression/compressor.h"
+#include "compression/decompressor.h"
 #include "crypto/hash.h"
 #include "smallhash.h"
 #include "swissknife.h"

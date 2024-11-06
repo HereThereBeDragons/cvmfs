@@ -6,7 +6,7 @@
 #define CVMFS_COMPRESSION_COMPRESSOR_ECHO_H_
 
 #include <string>
-#include "compression.h"
+#include "compressor.h"
 
 namespace zlib {
 

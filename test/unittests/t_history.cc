@@ -8,8 +8,8 @@
 #include <map>
 #include <string>
 
-#include "compression/compression.h"
-#include "compression/decompression.h"
+#include "compression/compressor.h"
+#include "compression/decompressor.h"
 #include "compression/input_mem.h"
 #include "history_sqlite.h"
 #include "network/sink_path.h"

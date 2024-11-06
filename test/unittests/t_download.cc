@@ -11,7 +11,7 @@
 
 #include "c_file_sandbox.h"
 #include "c_http_server.h"
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_mem.h"
 #include "crypto/hash.h"
 #include "interrupt.h"

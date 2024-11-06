@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "crypto/hash.h"
 #include "manifest.h"
 #include "util/pointer.h"

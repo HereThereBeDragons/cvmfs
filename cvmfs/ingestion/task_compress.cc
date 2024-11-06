@@ -7,7 +7,7 @@
 
 #include <cstdlib>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_mem.h"
 #include "network/sink_mem.h"
 #include "util/logging.h"

@@ -9,7 +9,7 @@
 
 #include "backoff.h"
 #include "cache_posix.h"
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_mem.h"
 #include "crypto/hash.h"
 #include "fetch.h"

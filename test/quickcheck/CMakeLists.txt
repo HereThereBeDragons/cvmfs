@@ -38,11 +38,11 @@ set (CVMFS_QC_SOURCES
   ${CVMFS_SOURCE_DIR}/catalog_mgr_rw.cc
   ${CVMFS_SOURCE_DIR}/catalog_rw.cc
   ${CVMFS_SOURCE_DIR}/catalog_sql.cc
-  ${CVMFS_SOURCE_DIR}/compression/compression.cc
+  ${CVMFS_SOURCE_DIR}/compression/compressor.cc
   ${CVMFS_SOURCE_DIR}/compression/compressor_echo.cc
   ${CVMFS_SOURCE_DIR}/compression/compressor_zlib.cc
   ${CVMFS_SOURCE_DIR}/compression/compressor_zstd.cc
-  ${CVMFS_SOURCE_DIR}/compression/decompression.cc
+  ${CVMFS_SOURCE_DIR}/compression/decompressor.cc
   ${CVMFS_SOURCE_DIR}/compression/decompressor_echo.cc
   ${CVMFS_SOURCE_DIR}/compression/decompressor_zlib.cc
   ${CVMFS_SOURCE_DIR}/compression/decompressor_zstd.cc

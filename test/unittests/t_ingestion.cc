@@ -11,7 +11,7 @@
 #include <cstring>
 
 #include "c_mock_uploader.h"
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_mem.h"
 #include "crypto/hash.h"
 #include "ingestion/item.h"

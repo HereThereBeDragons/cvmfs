@@ -8,7 +8,7 @@
  * TODO: think about code deduplication
  */
 
-#include "compression.h"
+#include "compressor.h"
 
 #include <alloca.h>
 #include <stdlib.h>

@@ -7,9 +7,9 @@
 #include <cstdlib>  // for rand()
 
 #include "c_file_sandbox.h"
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/compressor_zlib.h"
-#include "compression/decompression.h"
+#include "compression/decompressor.h"
 #include "compression/input_mem.h"
 #include "compression/input_path.h"
 #include "network/sink.h"

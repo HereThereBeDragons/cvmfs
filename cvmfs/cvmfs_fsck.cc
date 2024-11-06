@@ -23,7 +23,7 @@
 #include <cstring>
 #include <string>
 
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_file.h"
 #include "crypto/hash.h"
 #include "network/sink_null.h"

@@ -16,7 +16,7 @@
 
 #include "catalog_balancer.h"
 #include "catalog_rw.h"
-#include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/input_path.h"
 #include "manifest.h"
 #include "network/sink_null.h"

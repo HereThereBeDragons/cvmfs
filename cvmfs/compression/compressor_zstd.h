@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "compression.h"
+#include "compressor.h"
 
 namespace zlib {
 
