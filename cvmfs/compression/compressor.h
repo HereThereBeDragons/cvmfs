@@ -2,8 +2,8 @@
  * This file is part of the CernVM File System.
  */
 
-#ifndef CVMFS_COMPRESSION_COMPRESSION_H_
-#define CVMFS_COMPRESSION_COMPRESSION_H_
+#ifndef CVMFS_COMPRESSION_COMPRESSOR_H_
+#define CVMFS_COMPRESSION_COMPRESSOR_H_
 
 #include <errno.h>
 #include <stdint.h>
@@ -100,4 +100,4 @@ class Compressor: public PolymorphicConstruction<Compressor, Algorithms> {
 
 }  // namespace zlib
 
-#endif  // CVMFS_COMPRESSION_COMPRESSION_H_
+#endif  // CVMFS_COMPRESSION_COMPRESSOR_H_

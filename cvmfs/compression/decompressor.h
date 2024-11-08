@@ -2,8 +2,8 @@
  * This file is part of the CernVM File System.
  */
 
-#ifndef CVMFS_COMPRESSION_DECOMPRESSION_H_
-#define CVMFS_COMPRESSION_DECOMPRESSION_H_
+#ifndef CVMFS_COMPRESSION_DECOMPRESSOR_H_
+#define CVMFS_COMPRESSION_DECOMPRESSOR_H_
 
 
 #include <errno.h>
@@ -76,4 +76,4 @@ class Decompressor : public PolymorphicConstruction<Decompressor, Algorithms> {
 
 }  // namespace zlib
 
-#endif  // CVMFS_COMPRESSION_DECOMPRESSION_H_
+#endif  // CVMFS_COMPRESSION_DECOMPRESSOR_H_
