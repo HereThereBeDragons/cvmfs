@@ -5,7 +5,7 @@
 #include "input_mem.h"
 
 #include <cstdlib>
-namespace zlib {
+namespace zip {
 
 InputMem::InputMem(const unsigned char *src, const size_t src_size) :
                                   InputAbstract(false, 16384),

@@ -22,10 +22,10 @@
 void TaskCompress::Process(BlockItem *input_block) {
   assert(input_block->chunk_item() != NULL);
 
-  zlib::Compressor *compressor = input_block->chunk_item()->GetCompressor();
+  zip::Compressor *compressor = input_block->chunk_item()->GetCompressor();
   const int64_t tag = input_block->tag();
   const bool flush = input_block->type() == BlockItem::kBlockStop;
-  zlib::InputMem in_comp(input_block->data(), input_block->size());
+  zip::InputMem in_comp(input_block->data(), input_block->size());
 
   BlockItem *output_block = NULL;
   if (!tag_map_.Lookup(tag, &output_block)) {
@@ -38,7 +38,7 @@ void TaskCompress::Process(BlockItem *input_block) {
   }
 
   cvmfs::MemSink out_comp;
-  zlib::StreamStates ret_compress;
+  zip::StreamStates ret_compress;
   do {
     assert(!output_block->IsFull());
     out_comp.Adopt(output_block->capacity(), output_block->size(),
@@ -47,7 +47,7 @@ void TaskCompress::Process(BlockItem *input_block) {
     ret_compress = compressor->CompressStream(&in_comp, &out_comp, flush);
     output_block->set_size(out_comp.pos());
 
-    if (ret_compress == zlib::kStreamOutBufFull) {
+    if (ret_compress == zip::kStreamOutBufFull) {
       assert(output_block->IsFull());
       tubes_out_->Dispatch(output_block);
       output_block = new BlockItem(tag, allocator_);
@@ -56,7 +56,8 @@ void TaskCompress::Process(BlockItem *input_block) {
       output_block->MakeData(kCompressedBlockSize);
       tag_map_.Insert(tag, output_block);
     }
-  } while (ret_compress != zlib::kStreamEnd && ret_compress != zlib::kStreamContinue);
+  } while (ret_compress != zip::kStreamEnd
+           && ret_compress != zip::kStreamContinue);
 
   if (flush) {
     input_block->chunk_item()->ReleaseCompressor();

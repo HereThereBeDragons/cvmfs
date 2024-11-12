@@ -115,7 +115,7 @@ class T_Ingestion : public ::testing::Test {
   TubeConsumerGroup<DummyItem> task_group_;
   IngestionMockUploader *uploader_;
   ItemAllocator allocator_;
-  UniquePtr<zlib::Compressor> compressor_;
+  UniquePtr<zip::Compressor> compressor_;
 };
 
 
@@ -339,7 +339,7 @@ TEST_F(T_Ingestion, TaskChunkDispatch) {
   delete item_stop;
 
   FileItem file_null_legacy(new FileIngestionSource(std::string("/dev/null")),
-                            1024, 2048, 4096, zlib::kZlibDefault, shash::kSha1,
+                            1024, 2048, 4096, zip::kZlibDefault, shash::kSha1,
                             shash::kSuffixNone, true, true);
   file_null_legacy.set_size(0);
   BlockItem *b3 = new BlockItem(3, &allocator_);
@@ -526,11 +526,11 @@ TEST_F(T_Ingestion, TaskCompressNull) {
   b1->MakeStop();
   tube_in.EnqueueBack(b1);
 
-  compressor_ = zlib::Compressor::Construct(zlib::kZlibDefault);
-  zlib::InputMem in(NULL, 0);
+  compressor_ = zip::Compressor::Construct(zip::kZlibDefault);
+  zip::InputMem in(NULL, 0);
   cvmfs::MemSink zlib_null(0);
-  const zlib::StreamStates res = compressor_->Compress(&in, &zlib_null);
-  ASSERT_EQ(res, zlib::kStreamEnd);
+  const zip::StreamStates res = compressor_->Compress(&in, &zlib_null);
+  ASSERT_EQ(res, zip::kStreamEnd);
   ASSERT_GT(zlib_null.pos(), 0U);
 
   BlockItem *item_data = tube_out->PopFront();
@@ -595,11 +595,11 @@ TEST_F(T_Ingestion, TaskCompress) {
   b_stop->MakeStop();
   tube_in.EnqueueBack(b_stop);
 
-  compressor_ = zlib::Compressor::Construct(zlib::kZlibDefault);
-  zlib::InputMem in(block_raw.data(), block_raw.size());
+  compressor_ = zip::Compressor::Construct(zip::kZlibDefault);
+  zip::InputMem in(block_raw.data(), block_raw.size());
   cvmfs::MemSink comp_single_block(0, block_raw.size()/2);
-  zlib::StreamStates res = compressor_->Compress(&in, &comp_single_block);
-  ASSERT_EQ(res, zlib::kStreamEnd);
+  zip::StreamStates res = compressor_->Compress(&in, &comp_single_block);
+  ASSERT_EQ(res, zip::kStreamEnd);
   ASSERT_GT(comp_single_block.pos(), 0U);
   // safety margin because of zstd having slightly different sizes between
   // block per block compression and compression in a single chunk
@@ -608,12 +608,12 @@ TEST_F(T_Ingestion, TaskCompress) {
   unsigned char *ptr_read_decomp = reinterpret_cast<unsigned char *>(
                                                      smalloc(block_raw.size()));
   // check that decompressed is equal to
-  zlib::Decompressor *decomp(zlib::Decompressor::Construct(zlib::kZlibDefault));
-  zlib::InputMem in_decomp(comp_single_block.data(), comp_single_block.pos());
+  zip::Decompressor *decomp(zip::Decompressor::Construct(zip::kZlibDefault));
+  zip::InputMem in_decomp(comp_single_block.data(), comp_single_block.pos());
   cvmfs::MemSink out_decomp(0, block_raw.size() + 100);
 
   res = decomp->DecompressStream(&in_decomp, &out_decomp);
-  ASSERT_EQ(res, zlib::kStreamEnd);
+  ASSERT_EQ(res, zip::kStreamEnd);
   EXPECT_EQ(0, memcmp(out_decomp.data(), block_raw.data(), block_raw.size()));
 
   decomp->Reset();
@@ -639,10 +639,10 @@ TEST_F(T_Ingestion, TaskCompress) {
       read_pos += b->size();
 
       // decompress each block
-      zlib::InputMem in_tmp(b->data(), b->size());
+      zip::InputMem in_tmp(b->data(), b->size());
       cvmfs::MemSink out_tmp(0);
       res = decomp->DecompressStream(&in_tmp, &out_tmp);
-      ASSERT_TRUE(res == zlib::kStreamEnd || res == zlib::kStreamContinue);
+      ASSERT_TRUE(res == zip::kStreamEnd || res == zip::kStreamContinue);
       memcpy(ptr_read_decomp + decomp_read_pos, out_tmp.data(), out_tmp.pos());
       decomp_read_pos += out_tmp.pos();
     }
@@ -652,10 +652,10 @@ TEST_F(T_Ingestion, TaskCompress) {
   EXPECT_EQ(0U, tube_out->size());
 
   decomp->Reset();
-  zlib::InputMem in_tmp(ptr_read_large, read_pos);
+  zip::InputMem in_tmp(ptr_read_large, read_pos);
   cvmfs::MemSink out_tmp(0, block_raw.size() + 100);
   res = decomp->DecompressStream(&in_tmp, &out_tmp);
-  ASSERT_TRUE(res == zlib::kStreamEnd);
+  ASSERT_TRUE(res == zip::kStreamEnd);
 
   EXPECT_EQ(0, memcmp(out_tmp.data(), block_raw.data(), block_raw.size()));
   EXPECT_EQ(0, memcmp(out_decomp.data(), ptr_read_decomp, block_raw.size()));
@@ -821,7 +821,7 @@ TEST_F(T_Ingestion, TaskWriteLarge) {
 
 TEST_F(T_Ingestion, PipelineNull) {
   upload::SpoolerDefinition spooler_definition = MockSpoolerDefinition();
-  spooler_definition.compression_alg = zlib::kNoCompression;
+  spooler_definition.compression_alg = zip::kNoCompression;
 
   UniquePtr<IngestionPipeline> pipeline_straight(
     new IngestionPipeline(uploader_, spooler_definition));
@@ -841,7 +841,7 @@ TEST_F(T_Ingestion, PipelineNull) {
 
   uploader_->ClearResults();
 
-  spooler_definition.compression_alg = zlib::kZlibDefault;
+  spooler_definition.compression_alg = zip::kZlibDefault;
   spooler_definition.hash_algorithm = shash::kShake128;
   UniquePtr<IngestionPipeline> pipeline_zlib(
       new IngestionPipeline(uploader_, spooler_definition));
@@ -853,11 +853,11 @@ TEST_F(T_Ingestion, PipelineNull) {
   EXPECT_EQ(1U, uploader_->results.size());
 
 
-  compressor_ = zlib::Compressor::Construct(zlib::kZlibDefault);
-  zlib::InputMem in(NULL, 0);
+  compressor_ = zip::Compressor::Construct(zip::kZlibDefault);
+  zip::InputMem in(NULL, 0);
   cvmfs::MemSink zlib_null(0);
-  const zlib::StreamStates res = compressor_->Compress(&in, &zlib_null);
-  ASSERT_EQ(res, zlib::kStreamEnd);
+  const zip::StreamStates res = compressor_->Compress(&in, &zlib_null);
+  ASSERT_EQ(res, zip::kStreamEnd);
   ASSERT_GT(zlib_null.pos(), 0U);
 
   shash::Any hash_compressed_null(spooler_definition.hash_algorithm);

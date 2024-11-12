@@ -69,7 +69,7 @@ int swissknife::Ingest::Main(const swissknife::ArgumentList &args) {
   }
   if (args.find('Z') != args.end()) {
     params.compression_alg =
-        zlib::ParseCompressionAlgorithm(*args.find('Z')->second);
+                        zip::ParseCompressionAlgorithm(*args.find('Z')->second);
   }
   if (args.find('U') != args.end()) {
     params.uid = static_cast<uid_t>(String2Int64(*args.find('U')->second));

@@ -41,7 +41,7 @@ SimpleCatalogManager::SimpleCatalogManager(
             "Failure during creation of local cache directory for server. "
             "Local cache directory: %s", dir_cache_.c_str());
     }
-    copy_ = zlib::Decompressor::Construct(zlib::kNoCompression);
+    copy_ = zip::Decompressor::Construct(zip::kNoCompression);
 
   } else {
     copy_to_tmp_dir_ = false;
@@ -68,11 +68,11 @@ std::string SimpleCatalogManager::CopyCatalogToTempFile(
                       cache_path.c_str());
   }
 
-  zlib::InputPath in_path(cache_path);
+  zip::InputPath in_path(cache_path);
   cvmfs::FileSink out_file(fcatalog, true);
 
   const bool retval = (copy_->DecompressStream(&in_path, &out_file)
-                                                           == zlib::kStreamEnd);
+                                                            == zip::kStreamEnd);
   if (!retval) {
     unlink(tmp_path.c_str());
     PANIC(kLogStderr, "failed to read %s", cache_path.c_str());

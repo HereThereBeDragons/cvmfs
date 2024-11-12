@@ -353,8 +353,8 @@ class LocalObjectFetcher :
                      const std::string &temp_dir)
     : BaseTN(temp_dir)
     , base_path_(base_path) {
-    copy_ = zlib::Decompressor::Construct(zlib::kNoCompression);
-    decomp_zlib_ = zlib::Decompressor::Construct(zlib::kZlibDefault);
+    copy_ = zip::Decompressor::Construct(zip::kNoCompression);
+    decomp_zlib_ = zip::Decompressor::Construct(zip::kZlibDefault);
   }
 
   using BaseTN::FetchManifest;  // un-hiding convenience overload
@@ -411,9 +411,9 @@ class LocalObjectFetcher :
     }
 
     // decompress or copy the requested object file
-    zlib::InputPath in_path(source);
+    zip::InputPath in_path(source);
     cvmfs::FileSink out_file(f, true);
-    zlib::Decompressor *decomp;
+    zip::Decompressor *decomp;
 
     if (decompress) {
       decomp = decomp_zlib_.weak_ref();
@@ -422,7 +422,7 @@ class LocalObjectFetcher :
     }
 
     const bool success = (decomp->DecompressStream(&in_path, &out_file)
-                                                           == zlib::kStreamEnd);
+                                                            == zip::kStreamEnd);
 
     // check the decompression success and remove the temporary file otherwise
     if (!success) {
@@ -449,8 +449,8 @@ class LocalObjectFetcher :
 
  private:
   const std::string base_path_;
-  UniquePtr<zlib::Decompressor> copy_;
-  UniquePtr<zlib::Decompressor> decomp_zlib_;
+  UniquePtr<zip::Decompressor> copy_;
+  UniquePtr<zip::Decompressor> decomp_zlib_;
 };
 
 template <class CatalogT, class HistoryT, class ReflogT>

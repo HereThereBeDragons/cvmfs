@@ -12,21 +12,21 @@
 
 #include "crypto/hash.h"
 
-namespace zlib {
+namespace zip {
 
-EchoCompressor::EchoCompressor(const zlib::Algorithms &alg) : Compressor(alg) {
+EchoCompressor::EchoCompressor(const zip::Algorithms &alg) : Compressor(alg) {
   is_healthy_ = true;
   output_full_ = false;
 }
 
 
-bool EchoCompressor::WillHandle(const zlib::Algorithms &alg) {
+bool EchoCompressor::WillHandle(const zip::Algorithms &alg) {
   return alg == kNoCompression;
 }
 
 
 Compressor* EchoCompressor::Clone() {
-  return new EchoCompressor(zlib::kNoCompression);
+  return new EchoCompressor(zip::kNoCompression);
 }
 
 StreamStates EchoCompressor::CompressStream(InputAbstract *input,

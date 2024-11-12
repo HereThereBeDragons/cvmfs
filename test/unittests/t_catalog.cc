@@ -378,12 +378,12 @@ TEST_F(T_Catalog, Chunks) {
                                            NULL,
                                            false);
   shash::Any hash;
-  zlib::Algorithms compression_alg;
+  zip::Algorithms compression_alg;
   EXPECT_TRUE(catalog->AllChunksBegin());
   unsigned counter = 0;
   while (catalog->AllChunksNext(&hash, &compression_alg)) {
     ++counter;
-    EXPECT_EQ(zlib::kZlibDefault, compression_alg);
+    EXPECT_EQ(zip::kZlibDefault, compression_alg);
   }
   EXPECT_TRUE(catalog->AllChunksEnd());
   EXPECT_EQ(4u, counter);  // number of files with content + empty hash
@@ -467,9 +467,9 @@ TEST_F(T_Catalog, AttachSchema09) {
   bool retval = Debase64(kCatalogNa61Schema09, &catalog_debase);
   ASSERT_TRUE(retval);
 
-  zlib::InputMem catalog_in(reinterpret_cast<unsigned char*>(
-                              const_cast<char*>(catalog_debase.data())),
-                            catalog_debase.length());
+  zip::InputMem catalog_in(reinterpret_cast<unsigned char*>(
+                                      const_cast<char*>(catalog_debase.data())),
+                           catalog_debase.length());
   std::string temp_path;
   FILE *f = CreateTempFile("cvmfs_ut_legacy", 0666, "w+", &temp_path);
   EXPECT_TRUE(f != NULL);
@@ -480,11 +480,11 @@ TEST_F(T_Catalog, AttachSchema09) {
   fclose(f);
   cvmfs::PathSink out(temp_path);
 
-  const UniquePtr<zlib::Decompressor>
-                decompressor(zlib::Decompressor::Construct(zlib::kZlibDefault));
-  const zlib::StreamStates res = decompressor->
+  const UniquePtr<zip::Decompressor>
+                  decompressor(zip::Decompressor::Construct(zip::kZlibDefault));
+  const zip::StreamStates res = decompressor->
                                             DecompressStream(&catalog_in, &out);
-  EXPECT_EQ(res, zlib::kStreamEnd);
+  EXPECT_EQ(res, zip::kStreamEnd);
 
   WritableCatalog *catalog =
     WritableCatalog::AttachFreely("", temp_path, shash::Any());
@@ -494,7 +494,7 @@ TEST_F(T_Catalog, AttachSchema09) {
   int nchunk = 0;
   catalog->AllChunksBegin();
   shash::Any h;
-  zlib::Algorithms a;
+  zip::Algorithms a;
   while (catalog->AllChunksNext(&h, &a)) {
     nchunk++;
   }
@@ -519,7 +519,7 @@ TEST_F(T_Catalog, AttachSchema10) {
   bool retval = Debase64(kCatalogNa61Schema10, &catalog_debase);
   ASSERT_TRUE(retval);
 
-  zlib::InputMem catalog_in(reinterpret_cast<unsigned char*>(
+  zip::InputMem catalog_in(reinterpret_cast<unsigned char*>(
                               const_cast<char*>(catalog_debase.data())),
                             catalog_debase.length());
   std::string temp_path;
@@ -532,11 +532,11 @@ TEST_F(T_Catalog, AttachSchema10) {
   fclose(f);
   cvmfs::PathSink out(temp_path);
 
-  const UniquePtr<zlib::Decompressor>
-                decompressor(zlib::Decompressor::Construct(zlib::kZlibDefault));
-  const zlib::StreamStates res = decompressor->
+  const UniquePtr<zip::Decompressor>
+                  decompressor(zip::Decompressor::Construct(zip::kZlibDefault));
+  const zip::StreamStates res = decompressor->
                                             DecompressStream(&catalog_in, &out);
-  EXPECT_EQ(res, zlib::kStreamEnd);
+  EXPECT_EQ(res, zip::kStreamEnd);
 
   WritableCatalog *catalog =
     WritableCatalog::AttachFreely("", temp_path, shash::Any());

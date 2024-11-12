@@ -11,7 +11,7 @@
 #include "input_file.h"
 #include "util/pointer.h"
 
-namespace zlib {
+namespace zip {
 
 /**
  * Read-only data source: allows chunked reading of a file given by a path

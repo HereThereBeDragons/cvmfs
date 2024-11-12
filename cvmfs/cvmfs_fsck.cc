@@ -142,8 +142,8 @@ static void *MainCheck(void *data __attribute__((unused))) {
   string relative_path;
   string hash_name;
 
-  const UniquePtr<zlib::Compressor>
-                      compress(zlib::Compressor::Construct(zlib::kZlibDefault));
+  const UniquePtr<zip::Compressor>
+                        compress(zip::Compressor::Construct(zip::kZlibDefault));
 
   while (GetNextFile(&relative_path, &hash_name)) {
     const string path = *g_cache_dir + "/" + relative_path;
@@ -183,9 +183,9 @@ static void *MainCheck(void *data __attribute__((unused))) {
     // Compress every file and calculate SHA-1 of stream
     shash::Any expected_hash = shash::MkFromHexPtr(shash::HexPtr(hash_name));
     shash::Any hash(expected_hash.algorithm);
-    zlib::InputFile input(fdopen(fd_src, "r"), true);
+    zip::InputFile input(fdopen(fd_src, "r"), true);
     cvmfs::NullSink out_null;
-    if (compress->Compress(&input, &out_null, &hash) != zlib::kStreamEnd) {
+    if (compress->Compress(&input, &out_null, &hash) != zip::kStreamEnd) {
       LogCvmfs(kLogCvmfs, kLogStdout, "Error: could not compress %s",
                path.c_str());
       atomic_inc32(&g_num_err_operational);

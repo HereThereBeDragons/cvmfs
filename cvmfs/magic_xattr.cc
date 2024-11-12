@@ -351,8 +351,7 @@ bool CompressionMagicXattr::PrepareValueFenced() {
 }
 
 void CompressionMagicXattr::FinalizeValue() {
-  result_pages_.push_back(zlib::AlgorithmName(
-                                             dirent_->compression_algorithm()));
+  result_pages_.push_back(zip::AlgorithmName(dirent_->compression_algorithm()));
 }
 
 bool DirectIoMagicXattr::PrepareValueFenced() {

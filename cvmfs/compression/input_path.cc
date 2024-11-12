@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-namespace zlib {
+namespace zip {
 
 InputPath::InputPath(const std::string& path) :
                                                InputAbstract(true, 16384, NULL),

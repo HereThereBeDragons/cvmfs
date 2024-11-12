@@ -12,7 +12,7 @@
 #include "decompressor.h"
 #include "duplex_zlib.h"
 
-namespace zlib {
+namespace zip {
 
 /**
  * ZstdDecompressor is a decompressor that just plainly copies data
@@ -43,7 +43,7 @@ class ZstdDecompressor: public Decompressor {
   virtual bool Reset();
   Decompressor* Clone();
   virtual std::string Describe();
-  static bool WillHandle(const zlib::Algorithms &alg);
+  static bool WillHandle(const zip::Algorithms &alg);
 
  private:
   ZSTD_DCtx *stream_;

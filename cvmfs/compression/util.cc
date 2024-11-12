@@ -9,7 +9,7 @@
 
 #include "util/exception.h"
 
-namespace zlib {
+namespace zip {
 
 /**
  * Aborts if string doesn't match any of the algorithms.
@@ -26,7 +26,7 @@ Algorithms ParseCompressionAlgorithm(const std::string &algorithm_option) {
 }
 
 
-std::string AlgorithmName(const zlib::Algorithms alg) {
+std::string AlgorithmName(const zip::Algorithms alg) {
   switch (alg) {
     case kZlibDefault:
       return "zlib";

@@ -8,7 +8,7 @@
 #include <string>
 #include "compressor.h"
 
-namespace zlib {
+namespace zip {
 
 /**
  * EchoCompressor is a compressor that just plainly copies data (like 'echo').
@@ -29,7 +29,7 @@ class EchoCompressor: public Compressor {
   Compressor* Clone();
   virtual std::string Describe();
 
-  static bool WillHandle(const zlib::Algorithms &alg);
+  static bool WillHandle(const zip::Algorithms &alg);
 
  private:
   bool is_healthy_;

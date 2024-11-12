@@ -92,9 +92,9 @@ class JobInfo {
   // decompression
   DecompressorType decompressor_type_;  // ONLY change using SetDecompressor()
   cvmfs::Sink *sink_;
-  zlib::Decompressor *active_decomp_;
-  UniquePtr<zlib::Decompressor> decomp_zlib_;
-  UniquePtr<zlib::Decompressor> decomp_echo_;
+  zip::Decompressor *active_decomp_;
+  UniquePtr<zip::Decompressor> decomp_zlib_;
+  UniquePtr<zip::Decompressor> decomp_echo_;
 
   // Allow byte ranges to be specified.
   off_t range_offset_;
@@ -177,7 +177,7 @@ class JobInfo {
    * @returns true   on successful write (kStreamEnd or kStreamContinue)
    *          false  on any error
    */
-  bool DecompressToSink(zlib::InputAbstract *in);
+  bool DecompressToSink(zip::InputAbstract *in);
 
   pid_t *GetPidPtr() { return &pid_; }
   uid_t *GetUidPtr() { return &uid_; }

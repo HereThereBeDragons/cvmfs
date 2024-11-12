@@ -178,27 +178,27 @@ int main(int argc, char *argv[]) {
   string cern_pk_it4_path  = cern_pk_base_path + "/cern-it4.cern.ch.pub";
   string cern_pk_it5_path  = cern_pk_base_path + "/cern-it5.cern.ch.pub";
   bool keys_created = false;
-  const UniquePtr<zlib::Compressor>
-                    compress(zlib::Compressor::Construct(zlib::kNoCompression));
+  const UniquePtr<zip::Compressor>
+                      compress(zip::Compressor::Construct(zip::kNoCompression));
   if (args.find('k') == args.end()) {
     keys_created = true;
-    zlib::InputMem
+    zip::InputMem
              in_it1(reinterpret_cast<const unsigned char*>(gCernIt1PublicKey),
                    sizeof(gCernIt1PublicKey));
     cvmfs::PathSink out_it1(cern_pk_it1_path);
-    assert(compress->Compress(&in_it1, &out_it1) == zlib::kStreamEnd);
+    assert(compress->Compress(&in_it1, &out_it1) == zip::kStreamEnd);
 
-    zlib::InputMem
-             in_it4(reinterpret_cast<const unsigned char*>(gCernIt4PublicKey),
-                   sizeof(gCernIt4PublicKey));
+    zip::InputMem
+               in_it4(reinterpret_cast<const unsigned char*>(gCernIt4PublicKey),
+                      sizeof(gCernIt4PublicKey));
     cvmfs::PathSink out_it4(cern_pk_it4_path);
-    assert(compress->Compress(&in_it4, &out_it4) == zlib::kStreamEnd);
+    assert(compress->Compress(&in_it4, &out_it4) == zip::kStreamEnd);
 
-    zlib::InputMem
-             in_it5(reinterpret_cast<const unsigned char*>(gCernIt5PublicKey),
-                   sizeof(gCernIt5PublicKey));
+    zip::InputMem
+               in_it5(reinterpret_cast<const unsigned char*>(gCernIt5PublicKey),
+                      sizeof(gCernIt5PublicKey));
     cvmfs::PathSink out_it5(cern_pk_it5_path);
-    assert(compress->Compress(&in_it5, &out_it5) == zlib::kStreamEnd);
+    assert(compress->Compress(&in_it5, &out_it5) == zip::kStreamEnd);
 
     char path_separator = ':';
     args['k'].Reset(new string(cern_pk_it1_path + path_separator +
@@ -217,12 +217,12 @@ int main(int argc, char *argv[]) {
 
   // Copy dirtab file
   if (retval == 0) {
-    const UniquePtr<zlib::Compressor>
-                        copy(zlib::Compressor::Construct(zlib::kNoCompression));
-    zlib::InputPath in_path(dirtab);
+    const UniquePtr<zip::Compressor>
+                          copy(zip::Compressor::Construct(zip::kNoCompression));
+    zip::InputPath in_path(dirtab);
     cvmfs::PathSink out_path(dirtab_in_cache);
-    const zlib::StreamStates ret = copy->Compress(&in_path, &out_path);
-    if (ret != zlib::kStreamEnd) {
+    const zip::StreamStates ret = copy->Compress(&in_path, &out_path);
+    if (ret != zip::kStreamEnd) {
       PANIC(kLogStderr | kLogSyslogErr,
                           "Failure to copy dirtab from %s to %s: error %d",
                           dirtab.c_str(), dirtab_in_cache.c_str(), ret);

@@ -8,9 +8,9 @@
 
 #include "decompressor.h"
 
-namespace zlib {
+namespace zip {
 
-ZlibDecompressor::ZlibDecompressor(const zlib::Algorithms &alg) :
+ZlibDecompressor::ZlibDecompressor(const zip::Algorithms &alg) :
                                                              Decompressor(alg) {
   stream_.zalloc   = Z_NULL;
   stream_.zfree    = Z_NULL;
@@ -28,13 +28,13 @@ ZlibDecompressor::~ZlibDecompressor() {
   assert(retcode == Z_OK);
 }
 
-bool ZlibDecompressor::WillHandle(const zlib::Algorithms &alg) {
+bool ZlibDecompressor::WillHandle(const zip::Algorithms &alg) {
   return alg == kZlibDefault;
 }
 
 
 Decompressor* ZlibDecompressor::Clone() {
-  ZlibDecompressor* other = new ZlibDecompressor(zlib::kZlibDefault);
+  ZlibDecompressor* other = new ZlibDecompressor(zip::kZlibDefault);
   assert(stream_.avail_in == 0);
   // Delete the other stream
   int retcode = inflateEnd(&other->stream_);

@@ -23,7 +23,7 @@ struct Any;
 class ContextPtr;
 }
 
-namespace zlib {
+namespace zip {
 
 /**
  * Abstract Decompression class which is inherited by implementations of

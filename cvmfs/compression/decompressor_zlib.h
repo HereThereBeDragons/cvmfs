@@ -10,7 +10,7 @@
 #include "decompressor.h"
 #include "duplex_zlib.h"
 
-namespace zlib {
+namespace zip {
 
 /**
  * ZlibDecompressor is a decompressor that just plainly copies data
@@ -41,7 +41,7 @@ class ZlibDecompressor: public Decompressor {
   virtual bool Reset();
   Decompressor* Clone();
   virtual std::string Describe();
-  static bool WillHandle(const zlib::Algorithms &alg);
+  static bool WillHandle(const zip::Algorithms &alg);
 
  private:
   z_stream stream_;

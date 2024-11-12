@@ -465,9 +465,9 @@ bool CatalogTestTool::DirSpecAtRootHash(const shash::Any& root_hash,
 CatalogTestTool::~CatalogTestTool() {}
 
 upload::Spooler* CatalogTestTool::CreateSpooler(const std::string& config) {
-  upload::SpoolerDefinition definition(config, shash::kSha1, zlib::kZlibDefault,
-                                       false, true, 4194304, 8388608, 16777216,
-                                       "dummy_token", "dummy_key");
+   upload::SpoolerDefinition definition(config, shash::kSha1, zip::kZlibDefault,
+                                        false, true, 4194304, 8388608, 16777216,
+                                        "dummy_token", "dummy_key");
   return upload::Spooler::Construct(definition);
 }
 
@@ -515,18 +515,18 @@ void CatalogTestTool::CreateHistory(
   }
   history_hash->suffix = shash::kSuffixHistory;
 
-  const UniquePtr<zlib::Compressor>
-                      compress(zlib::Compressor::Construct(zlib::kZlibDefault));
-  zlib::InputPath input(history_path);
+  const UniquePtr<zip::Compressor>
+                        compress(zip::Compressor::Construct(zip::kZlibDefault));
+  zip::InputPath input(history_path);
   cvmfs::NullSink out_null;
   // TODO(heretherebedragons) for what do we need the hash here?
   EXPECT_EQ(compress->Compress(&input, &out_null, history_hash),
-            zlib::kStreamEnd);
+            zip::kStreamEnd);
 
-  zlib::InputPath in_path(history_path);
+  zip::InputPath in_path(history_path);
   cvmfs::PathSink out_path(repo_path_ + "/data/" + history_hash->MakePath());
-  const zlib::StreamStates retval = compress->Compress(&in_path, &out_path);
-  EXPECT_EQ(retval, zlib::kStreamEnd);
+  const zip::StreamStates retval = compress->Compress(&in_path, &out_path);
+  EXPECT_EQ(retval, zip::kStreamEnd);
 }
 
 
@@ -677,19 +677,19 @@ void CatalogTestTool::CreateKeys(
 
   hash_cert->suffix = shash::kSuffixCertificate;
 
-  const UniquePtr<zlib::Compressor>
-                      compress(zlib::Compressor::Construct(zlib::kZlibDefault));
-  zlib::InputPath in_path(repo_path_ + "/testrepo.crt");
+  const UniquePtr<zip::Compressor>
+                        compress(zip::Compressor::Construct(zip::kZlibDefault));
+  zip::InputPath in_path(repo_path_ + "/testrepo.crt");
   cvmfs::NullSink out_null;
   // TODO(heretherebedragons) for what do we need the hash here?
   EXPECT_EQ(compress->Compress(&in_path, &out_null, hash_cert),
-            zlib::kStreamEnd);
+            zip::kStreamEnd);
 
 
-  zlib::InputPath in_path2(repo_path_ + "/testrepo.crt");
+  zip::InputPath in_path2(repo_path_ + "/testrepo.crt");
   cvmfs::PathSink out_path(repo_path_ + "/data/" + hash_cert->MakePath());
-  const zlib::StreamStates retval = compress->Compress(&in_path2, &out_path);
-  EXPECT_EQ(retval, zlib::kStreamEnd);
+  const zip::StreamStates retval = compress->Compress(&in_path2, &out_path);
+  EXPECT_EQ(retval, zip::kStreamEnd);
 
   *public_key = repo_path_ + string("/testrepo.pub");
 }

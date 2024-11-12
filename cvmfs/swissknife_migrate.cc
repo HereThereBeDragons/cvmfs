@@ -36,7 +36,7 @@ CommandMigrate::CommandMigrate() :
   root_catalog_(NULL)
 {
   atomic_init32(&catalogs_processed_);
-  copy_ = zlib::Compressor::Construct(zlib::kNoCompression);
+  copy_ = zip::Compressor::Construct(zip::kNoCompression);
 }
 
 
@@ -336,9 +336,9 @@ bool CommandMigrate::UpdateUndoTags(
 {
   const string filename_new = history_upstream_->filename() + ".new";
 
-  zlib::InputPath in_path(history_upstream_->filename());
+  zip::InputPath in_path(history_upstream_->filename());
   cvmfs::PathSink out_path(filename_new);
-  if (copy_->Compress(&in_path, &out_path) != zlib::kStreamEnd) {
+  if (copy_->Compress(&in_path, &out_path) != zip::kStreamEnd) {
     return false;
   }
   UniquePtr<history::SqliteHistory> history(

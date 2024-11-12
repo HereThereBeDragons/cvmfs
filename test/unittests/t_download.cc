@@ -434,12 +434,12 @@ TEST_F(T_Download, LocalFile2Sink) {
     rnd_buf[i] = prng.Next(2147483647);
   shash::Any checksum(shash::kMd5);
 
-  const UniquePtr<zlib::Compressor>
-                      compress(zlib::Compressor::Construct(zlib::kZlibDefault));
-  zlib::InputMem in_mem(reinterpret_cast<unsigned char*>(rnd_buf), size);
+  const UniquePtr<zip::Compressor>
+                        compress(zip::Compressor::Construct(zip::kZlibDefault));
+  zip::InputMem in_mem(reinterpret_cast<unsigned char*>(rnd_buf), size);
   cvmfs::FileSink out_f(fdest, true);
 
-  EXPECT_EQ(compress->Compress(&in_mem, &out_f, &checksum), zlib::kStreamEnd);
+  EXPECT_EQ(compress->Compress(&in_mem, &out_f, &checksum), zip::kStreamEnd);
 
   TestSink test_sink2;
   JobInfo info2(&url, true /* compressed */, false /* probe hosts */,

@@ -7,7 +7,7 @@
 
 #include <cstdio>
 
-namespace zlib {
+namespace zip {
 
 /**
  * An abstract read-only data source that allows to read a source in chunks.

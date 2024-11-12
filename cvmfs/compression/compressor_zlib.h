@@ -10,7 +10,7 @@
 #include "compressor.h"
 #include "duplex_zlib.h"
 
-namespace zlib {
+namespace zip {
 
 /**
  * Zlib wrapper for compression.
@@ -30,7 +30,7 @@ class ZlibCompressor : public Compressor {
   virtual size_t CompressUpperBound(const size_t bytes);
   Compressor* Clone();
   virtual std::string Describe();
-  static bool WillHandle(const zlib::Algorithms &alg);
+  static bool WillHandle(const zip::Algorithms &alg);
 
  private:
   z_stream stream_;

@@ -28,7 +28,7 @@ using namespace std;  // NOLINT
 class T_CacheManager : public ::testing::Test {
  protected:
   virtual void SetUp() {
-    copy_ = zlib::Compressor::Construct(zlib::kNoCompression);
+    copy_ = zip::Compressor::Construct(zip::kNoCompression);
     used_fds_ = GetNoUsedFds();
 
     tmp_path_ = CreateTempDir("./cvmfs_ut_cache_manager");
@@ -110,7 +110,7 @@ class T_CacheManager : public ::testing::Test {
   shash::Any hash_one_;
   shash::Any hash_page_;
   unsigned used_fds_;
-  UniquePtr<zlib::Compressor> copy_;
+  UniquePtr<zip::Compressor> copy_;
 };
 
 
@@ -471,9 +471,9 @@ TEST_F(T_CacheManager, CommitTxnSizeMismatch) {
   EXPECT_EQ(1U, cache_mgr_->Write(&content, 1, txn));
   EXPECT_EQ(-EIO, cache_mgr_->CommitTxn(txn));
 
-  zlib::InputPath in_path(tmp_path_ + "/quarantaine/" + rnd_hash.ToString());
+  zip::InputPath in_path(tmp_path_ + "/quarantaine/" + rnd_hash.ToString());
   cvmfs::MemSink out_mem(0);
-  EXPECT_EQ(copy_->Compress(&in_path, &out_mem), zlib::kStreamEnd);
+  EXPECT_EQ(copy_->Compress(&in_path, &out_mem), zip::kStreamEnd);
   EXPECT_EQ(1U, out_mem.pos());
   EXPECT_EQ(content, out_mem.data()[0]);
 }
@@ -608,9 +608,9 @@ TEST_F(T_CacheManager, Create) {
   delete mgr;
   umask(mask_save);
 
-  zlib::InputPath in_path(tmp_path_ + "/" + hash_null_.MakePath());
+  zip::InputPath in_path(tmp_path_ + "/" + hash_null_.MakePath());
   cvmfs::PathSink out_path(path + "/cvmfscatalog.cache");
-  EXPECT_EQ(copy_->Compress(&in_path, &out_path), zlib::kStreamEnd);
+  EXPECT_EQ(copy_->Compress(&in_path, &out_path), zip::kStreamEnd);
   EXPECT_EQ(NULL, PosixCacheManager::Create(path, false));
 }
 
@@ -728,9 +728,9 @@ TEST_F(T_CacheManager, Rename) {
   EXPECT_TRUE(FileExists(path_one));
   EXPECT_EQ(-ENOENT, cache_mgr_->Rename(path_null.c_str(), path_one.c_str()));
 
-  zlib::InputPath in_path(path_one);
+  zip::InputPath in_path(path_one);
   cvmfs::PathSink out_path(path_null);
-  EXPECT_EQ(copy_->Compress(&in_path, &out_path), zlib::kStreamEnd);
+  EXPECT_EQ(copy_->Compress(&in_path, &out_path), zip::kStreamEnd);
   cache_mgr_->rename_workaround_ = PosixCacheManager::kRenameLink;
   EXPECT_EQ(0, cache_mgr_->Rename(path_null.c_str(), path_one.c_str()));
   EXPECT_FALSE(FileExists(path_null));

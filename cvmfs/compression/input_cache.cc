@@ -8,7 +8,7 @@
 
 #include "util/smalloc.h"
 
-namespace zlib {
+namespace zip {
 
 InputCache::InputCache(CacheManager *mgr, const int fd, const size_t buf_size) :
                                               InputAbstract(true, buf_size),

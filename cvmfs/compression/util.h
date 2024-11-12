@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace zlib {
+namespace zip {
 
 enum StreamStates {
   kStreamDataError = 0,
@@ -33,7 +33,7 @@ enum Algorithms {
 Algorithms ParseCompressionAlgorithm(const std::string &algorithm_option);
 
 
-std::string AlgorithmName(const zlib::Algorithms alg);
+std::string AlgorithmName(const zip::Algorithms alg);
 
 }  // namespace zlib
 

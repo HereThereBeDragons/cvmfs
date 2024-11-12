@@ -4,21 +4,21 @@
 
 #include "decompressor_echo.h"
 
-namespace zlib {
+namespace zip {
 
-EchoDecompressor::EchoDecompressor(const zlib::Algorithms &alg) :
+EchoDecompressor::EchoDecompressor(const zip::Algorithms &alg) :
                                                              Decompressor(alg) {
   is_healthy_ = true;
 }
 
 
-bool EchoDecompressor::WillHandle(const zlib::Algorithms &alg) {
+bool EchoDecompressor::WillHandle(const zip::Algorithms &alg) {
   return alg == kNoCompression;
 }
 
 
 Decompressor* EchoDecompressor::Clone() {
-  return new EchoDecompressor(zlib::kNoCompression);
+  return new EchoDecompressor(zip::kNoCompression);
 }
 
 StreamStates EchoDecompressor::DecompressStream(InputAbstract *input,

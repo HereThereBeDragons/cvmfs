@@ -44,7 +44,7 @@ class VirtualCatalog {
 
  private:
   static const char *kSnapshotDirectory;
-  UniquePtr<zlib::Compressor> compressor;
+  UniquePtr<zip::Compressor> compressor;
 
   struct TagId {
     TagId() { }

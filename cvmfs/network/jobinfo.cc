@@ -52,13 +52,13 @@ void JobInfo::SetDecompressor(const DecompressorType decompressor_type) {
       break;
       case kCreateZlib:
         if (!decomp_zlib_.IsValid()) {
-          decomp_zlib_ = zlib::Decompressor::Construct(zlib::kZlibDefault);
+          decomp_zlib_ = zip::Decompressor::Construct(zip::kZlibDefault);
         }
         active_decomp_ = decomp_zlib_.weak_ref();
       break;
       case kCreateEcho:
         if (!decomp_echo_.IsValid()) {
-          decomp_echo_ = zlib::Decompressor::Construct(zlib::kNoCompression);
+          decomp_echo_ = zip::Decompressor::Construct(zip::kNoCompression);
         }
         active_decomp_ = decomp_echo_.weak_ref();
       break;
@@ -73,29 +73,29 @@ bool JobInfo::ResetDecompression() {
   return active_decomp_->Reset();
 }
 
-bool JobInfo::DecompressToSink(zlib::InputAbstract *in) {
+bool JobInfo::DecompressToSink(zip::InputAbstract *in) {
   assert(active_decomp_ != NULL);
 
-  const zlib::StreamStates ret = active_decomp_->DecompressStream(in, sink_);
+  const zip::StreamStates ret = active_decomp_->DecompressStream(in, sink_);
 
   switch (ret) {
-    case zlib::kStreamEnd:
-    case zlib::kStreamContinue:
+    case zip::kStreamEnd:
+    case zip::kStreamContinue:
       return true;
     break;
-    case zlib::kStreamDataError:
+    case zip::kStreamDataError:
       LogCvmfs(kLogDownload, kLogSyslogErr,
-                            "(id %" PRId64 ") %s failed for input %s: bad data",
-                            id_, active_decomp_->Describe().c_str(), url_->c_str());
+                        "(id %" PRId64 ") %s failed for input %s: bad data",
+                        id_, active_decomp_->Describe().c_str(), url_->c_str());
       SetErrorCode(kFailBadData);
     break;
-    case zlib::kStreamIOError:
+    case zip::kStreamIOError:
       LogCvmfs(kLogDownload, kLogSyslogErr,
                       "(id %" PRId64 ") %s failed for input %s: local IO error",
                       id_, active_decomp_->Describe().c_str(), url_->c_str());
       SetErrorCode(kFailLocalIO);
     break;
-    case zlib::kStreamError:
+    case zip::kStreamError:
       LogCvmfs(kLogDownload, kLogSyslogErr,
                     "(id %" PRId64 ") %s failed for input %s: unhealthy status",
                     id_, active_decomp_->Describe().c_str(), url_->c_str());

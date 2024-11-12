@@ -8,9 +8,9 @@
 
 #include "decompressor.h"
 
-namespace zlib {
+namespace zip {
 
-ZstdDecompressor::ZstdDecompressor(const zlib::Algorithms &alg) :
+ZstdDecompressor::ZstdDecompressor(const zip::Algorithms &alg) :
                                       Decompressor(alg, ZSTD_DStreamOutSize()) {
   stream_ = ZSTD_createDCtx();
   assert(stream_ != NULL);
@@ -21,13 +21,13 @@ ZstdDecompressor::~ZstdDecompressor() {
   assert(ZSTD_freeDCtx(stream_) == 0);
 }
 
-bool ZstdDecompressor::WillHandle(const zlib::Algorithms &alg) {
+bool ZstdDecompressor::WillHandle(const zip::Algorithms &alg) {
   return alg == kZstdDefault;
 }
 
 
 Decompressor* ZstdDecompressor::Clone() {
-  ZstdDecompressor* other = new ZstdDecompressor(zlib::kZstdDefault);
+  ZstdDecompressor* other = new ZstdDecompressor(zip::kZstdDefault);
 
   // WARNING WARNING WARNING
   // not implemented

@@ -31,7 +31,7 @@
 #include "util/posix.h"
 #include "util/smalloc.h"
 
-namespace zlib {
+namespace zip {
 
 void Compressor::RegisterPlugins() {
   RegisterPlugin<ZlibCompressor>();

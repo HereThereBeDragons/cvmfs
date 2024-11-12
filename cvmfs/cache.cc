@@ -27,7 +27,7 @@ const uint64_t CacheManager::kSizeUnknown = uint64_t(-1);
 
 
 CacheManager::CacheManager() : quota_mgr_(new NoopQuotaManager()) {
-  compress_ = zlib::Compressor::Construct(zlib::kZlibDefault);
+  compress_ = zip::Compressor::Construct(zip::kZlibDefault);
 }
 
 CacheManager::~CacheManager() {
@@ -49,11 +49,11 @@ int CacheManager::ChecksumFd(int fd, shash::Any *id) {
     return check_read;
   }
 
-  zlib::InputCache input(this, fd, 4096);
+  zip::InputCache input(this, fd, 4096);
   cvmfs::NullSink out_null;
-  const zlib::StreamStates retval = compress_->Compress(&input, &out_null, id);
+  const zip::StreamStates retval = compress_->Compress(&input, &out_null, id);
 
-  if (retval != zlib::kStreamEnd) {
+  if (retval != zip::kStreamEnd) {
     return -EINVAL;
   }
 

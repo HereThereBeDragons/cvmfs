@@ -68,9 +68,9 @@ class ChunkJob {
   ChunkJob()
     : suffix(shash::kSuffixNone)
     , hash_algorithm(shash::kAny)
-    , compression_alg(zlib::kZlibDefault) {}
+    , compression_alg(zip::kZlibDefault) {}
 
-  ChunkJob(const shash::Any &hash, zlib::Algorithms compression_alg)
+  ChunkJob(const shash::Any &hash, zip::Algorithms compression_alg)
     : suffix(hash.suffix)
     , hash_algorithm(hash.algorithm)
     , compression_alg(compression_alg)
@@ -91,7 +91,7 @@ class ChunkJob {
 
   const shash::Suffix      suffix;
   const shash::Algorithms  hash_algorithm;
-  const zlib::Algorithms   compression_alg;
+  const zip::Algorithms   compression_alg;
   unsigned char            digest[shash::kMaxDigestSize];
 };
 
@@ -125,9 +125,9 @@ bool                 preload_cache = false;
 string              *preload_cachedir = NULL;
 bool                 inspect_existing_catalogs = false;
 manifest::Reflog    *reflog = NULL;
-UniquePtr<zlib::Decompressor> decomp_zlib;
-UniquePtr<zlib::Compressor> comp_zlib;
-UniquePtr<zlib::Compressor> copy;
+UniquePtr<zip::Decompressor> decomp_zlib;
+UniquePtr<zip::Compressor> comp_zlib;
+UniquePtr<zip::Compressor> copy;
 }  // anonymous namespace
 
 
@@ -205,9 +205,9 @@ static void Store(
         PANIC(kLogStderr, "Failed to create temporary file '%s'",
               remote_path.c_str());
       }
-      zlib::InputPath in_p(local_path);
+      zip::InputPath in_p(local_path);
       cvmfs::FileSink out_f(fdest, true);
-      if (decomp_zlib->DecompressStream(&in_p, &out_f) != zlib::kStreamEnd) {
+      if (decomp_zlib->DecompressStream(&in_p, &out_f) != zip::kStreamEnd) {
         PANIC(kLogStderr, "Failed to preload %s to %s", local_path.c_str(),
               remote_path.c_str());
       }
@@ -231,23 +231,23 @@ static void Store(
 
 static void StoreBuffer(const unsigned char *buffer, const unsigned size,
                         const std::string &dest_path,
-                        zlib::Compressor *compress) {
+                        zip::Compressor *compress) {
   string tmp_file;
   FILE *ftmp = CreateTempFile(*temp_dir + "/cvmfs", 0600, "w", &tmp_file);
   assert(ftmp);
 
-  zlib::InputMem in_mem(buffer, size);
+  zip::InputMem in_mem(buffer, size);
   cvmfs::FileSink out_f(ftmp, true);
 
-  const zlib::StreamStates retval = compress->Compress(&in_mem, &out_f);
-  assert(retval == zlib::kStreamEnd);
+  const zip::StreamStates retval = compress->Compress(&in_mem, &out_f);
+  assert(retval == zip::kStreamEnd);
 
   Store(tmp_file, dest_path, true);
 }
 
 static void StoreBuffer(const unsigned char *buffer, const unsigned size,
                         const shash::Any &dest_hash,
-                        zlib::Compressor *compress) {
+                        zip::Compressor *compress) {
   StoreBuffer(buffer, size, MakePath(dest_hash), compress);
 }
 
@@ -275,7 +275,7 @@ static void *MainWorker(void *data) {
       break;
 
     shash::Any chunk_hash = next_chunk.hash();
-    zlib::Algorithms compression_alg = next_chunk.compression_alg;
+    zip::Algorithms compression_alg = next_chunk.compression_alg;
     LogCvmfs(kLogCvmfs, kLogVerboseMsg, "processing chunk %s",
              chunk_hash.ToString().c_str());
 
@@ -296,7 +296,7 @@ static void *MainWorker(void *data) {
       }
       fclose(fchunk);
       Store(tmp_file, chunk_hash,
-            (compression_alg == zlib::kZlibDefault) ? true : false);
+            (compression_alg == zip::kZlibDefault) ? true : false);
       atomic_inc64(&overall_new);
     }
     if (atomic_xadd64(&overall_chunks, 1) % 1000 == 0)
@@ -387,7 +387,7 @@ bool CommandPull::Pull(const shash::Any   &catalog_hash,
 
   // Download and uncompress catalog
   shash::Any chunk_hash;
-  zlib::Algorithms compression_alg;
+  zip::Algorithms compression_alg;
   catalog::Catalog *catalog = NULL;
   string file_catalog;
   string file_catalog_vanilla;
@@ -424,9 +424,9 @@ bool CommandPull::Pull(const shash::Any   &catalog_hash,
   }
 
   {  // anonymous namespace to prevent crosses initialization due to gotos
-  zlib::InputPath in_path(file_catalog_vanilla);
+  zip::InputPath in_path(file_catalog_vanilla);
   cvmfs::PathSink out_path(file_catalog);
-  if (decomp_zlib->DecompressStream(&in_path, &out_path) != zlib::kStreamEnd) {
+  if (decomp_zlib->DecompressStream(&in_path, &out_path) != zip::kStreamEnd) {
     LogCvmfs(kLogCvmfs, kLogStderr, "decompression failure (file %s, hash %s)",
              file_catalog_vanilla.c_str(), catalog_hash.ToString().c_str());
     decomp_zlib->Reset();
@@ -591,9 +591,9 @@ int swissknife::CommandPull::Main(const swissknife::ArgumentList &args) {
   atomic_init64(&overall_new);
   atomic_init64(&chunk_queue);
 
-  decomp_zlib = zlib::Decompressor::Construct(zlib::kZlibDefault);
-  comp_zlib = zlib::Compressor::Construct(zlib::kZlibDefault);
-  copy = zlib::Compressor::Construct(zlib::kNoCompression);
+  decomp_zlib = zip::Decompressor::Construct(zip::kZlibDefault);
+  comp_zlib = zip::Compressor::Construct(zip::kZlibDefault);
+  copy = zip::Compressor::Construct(zip::kNoCompression);
 
   const bool     follow_redirects = false;
   const unsigned max_pool_handles = num_parallel+1;
@@ -758,11 +758,11 @@ int swissknife::CommandPull::Main(const swissknife::ArgumentList &args) {
       goto fini;
     }
     const std::string history_db_path = history_path + ".uncompressed";
-    zlib::InputPath in_path(history_path);
+    zip::InputPath in_path(history_path);
     cvmfs::PathSink out_path(history_db_path);
-    const zlib::StreamStates ret
+    const zip::StreamStates ret
                            = decomp_zlib->DecompressStream(&in_path, &out_path);
-    assert(ret == zlib::kStreamEnd);
+    assert(ret == zip::kStreamEnd);
     history::History *tag_db = history::SqliteHistory::Open(history_db_path);
     if (NULL == tag_db) {
       LogCvmfs(kLogCvmfs, kLogStderr, "failed to open history database (%s)",

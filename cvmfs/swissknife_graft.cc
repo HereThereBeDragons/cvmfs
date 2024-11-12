@@ -22,16 +22,16 @@
 #include "util/posix.h"
 
 bool swissknife::CommandGraft::ChecksumFdWithChunks(
-              const std::string &input_file, zlib::ZlibCompressor *compressor,
-              uint64_t *file_size, shash::Any *file_hash,
-              std::vector<uint64_t> *chunk_offsets,
-              std::vector<shash::Any> *chunk_checksums) {
+                 const std::string &input_file, zip::ZlibCompressor *compressor,
+                 uint64_t *file_size, shash::Any *file_hash,
+                 std::vector<uint64_t> *chunk_offsets,
+                 std::vector<shash::Any> *chunk_checksums) {
   if (!compressor || !file_size || !file_hash) {
     return false;
   }
   *file_size = 0;
   shash::Any chunk_hash(hash_alg_);
-  zlib::InputPath in_path(input_file);
+  zip::InputPath in_path(input_file);
   if (!in_path.IsValid()) {
     LogCvmfs(kLogCvmfs, kLogStderr, "Failure when opening file %s: %s",
               input_file.c_str(), strerror(errno));
@@ -43,9 +43,9 @@ bool swissknife::CommandGraft::ChecksumFdWithChunks(
   if (!do_chunk) {
     cvmfs::NullSink out_null;
 
-    zlib::StreamStates ret = compressor->Compress(&in_path, &out_null,
+    zip::StreamStates ret = compressor->Compress(&in_path, &out_null,
                                                                      file_hash);
-    if (ret != zlib::kStreamEnd) {
+    if (ret != zip::kStreamEnd) {
       return false;
     }
 
@@ -70,16 +70,16 @@ bool swissknife::CommandGraft::ChecksumFdWithChunks(
 
   unsigned char* out_buf[compressor->kZChunk()];
   cvmfs::MemSink out_comp;
-  zlib::StreamStates ret_compress;
+  zip::StreamStates ret_compress;
   do {
     out_comp.Adopt(compressor->kZChunk(), 0,
                               reinterpret_cast<unsigned char*>(out_buf), false);
 
     ret_compress = compressor->CompressStream(&in_path, &out_comp, true);
 
-    assert(ret_compress == zlib::kStreamOutBufFull
-        || ret_compress == zlib::kStreamEnd
-        || ret_compress == zlib::kStreamContinue);
+    assert(ret_compress == zip::kStreamOutBufFull
+           || ret_compress == zip::kStreamEnd
+           || ret_compress == zip::kStreamContinue);
 
     // finished or outbuffer full
     shash::Update(out_comp.data(), out_comp.pos(), chunk_hash_context);
@@ -87,14 +87,14 @@ bool swissknife::CommandGraft::ChecksumFdWithChunks(
       shash::Update(out_comp.data(), out_comp.pos(), file_hash_context);
     }
 
-    if (ret_compress == zlib::kStreamOutBufFull) {
+    if (ret_compress == zip::kStreamOutBufFull) {
       shash::Final(chunk_hash_context, &chunk_hash);
       chunk_offsets->push_back(*file_size);
       chunk_checksums->push_back(chunk_hash);
       shash::Init(chunk_hash_context);
     }
-  } while (ret_compress != zlib::kStreamEnd
-           && ret_compress != zlib::kStreamContinue);
+  } while (ret_compress != zip::kStreamEnd
+           && ret_compress != zip::kStreamContinue);
 
   shash::Final(file_hash_context, file_hash);
   shash::Final(chunk_hash_context, &chunk_hash);
@@ -163,9 +163,8 @@ int swissknife::CommandGraft::Main(const swissknife::ArgumentList &args) {
                   ? shash::kSha1
                   : shash::ParseHashAlgorithm(*args.find('a')->second);
   compression_alg_ =
-      (args.find('Z') == args.end())
-          ? zlib::kNoCompression
-          : zlib::ParseCompressionAlgorithm(*args.find('Z')->second);
+      (args.find('Z') == args.end()) ? zip::kNoCompression
+                      : zip::ParseCompressionAlgorithm(*args.find('Z')->second);
 
   if (args.find('c') == args.end()) {
     chunk_size_ = kDefaultChunkSize;
@@ -249,12 +248,12 @@ int swissknife::CommandGraft::Publish(const std::string &input_file,
   // TODO(heretherebedragons) if i see it correctly the Recurse() function is
   // sharing the single thread here that also runs main() - if yes we should
   // make the compressor a class-wide variable
-  const UniquePtr<zlib::Compressor>
-                      compressor(zlib::Compressor::Construct(compression_alg_));
+  const UniquePtr<zip::Compressor>
+                       compressor(zip::Compressor::Construct(compression_alg_));
 
   bool retval =
       ChecksumFdWithChunks(input_file,
-                 static_cast<zlib::ZlibCompressor*>(compressor.weak_ref()),
+                 static_cast<zip::ZlibCompressor*>(compressor.weak_ref()),
                  &processed_size, &file_hash, &chunk_offsets, &chunk_checksums);
 
   if (!input_file_is_stdin) {
@@ -290,7 +289,7 @@ int swissknife::CommandGraft::Publish(const std::string &input_file,
   std::string graft_contents =
     "size=" + StringifyInt(processed_size) + "\n" +
     "checksum=" + file_hash.ToString(with_suffix) + "\n" +
-    "compression=" + zlib::AlgorithmName(compression_alg_) + "\n";
+    "compression=" + zip::AlgorithmName(compression_alg_) + "\n";
   if (!chunk_offsets.empty()) {
     std::vector<std::string> chunk_off_str;
     chunk_off_str.reserve(chunk_offsets.size());

@@ -157,13 +157,13 @@ manifest::Manifest *WritableCatalogManager::CreateRepository(
   string file_path_compressed = file_path + ".compressed";
   shash::Any hash_catalog(hash_algorithm, shash::kSuffixCatalog);
 
-  const UniquePtr<zlib::Compressor>
-                      compress(zlib::Compressor::Construct(zlib::kZlibDefault));
-  zlib::InputPath in_path(file_path);
+  const UniquePtr<zip::Compressor>
+                      compress(zip::Compressor::Construct(zip::kZlibDefault));
+  zip::InputPath in_path(file_path);
   cvmfs::PathSink out_path(file_path_compressed);
-  const zlib::StreamStates retval = compress->Compress(&in_path, &out_path,
+  const zip::StreamStates retval = compress->Compress(&in_path, &out_path,
                                                                  &hash_catalog);
-  if (retval != zlib::kStreamEnd) {
+  if (retval != zip::kStreamEnd) {
     LogCvmfs(kLogCatalog, kLogStderr, "compression of catalog '%s' failed",
              file_path.c_str());
     unlink(file_path.c_str());
@@ -1260,7 +1260,7 @@ bool WritableCatalogManager::CopyCatalogToLocalCache(
                                tmp_catalog_path.c_str());
   }
 
-  zlib::InputPath in_path(result.local_path.c_str());
+  zip::InputPath in_path(result.local_path.c_str());
   cvmfs::FileSink out_file(fcatalog, true);
   copy_->DecompressStream(&in_path, &out_file);
 
@@ -1477,18 +1477,18 @@ WritableCatalogManager::SnapshotCatalogsSerialized(
   WritableCatalogList::const_iterator i = catalogs_to_snapshot.begin();
   const WritableCatalogList::const_iterator iend = catalogs_to_snapshot.end();
 
-  const UniquePtr<zlib::Compressor>
-                      compress(zlib::Compressor::Construct(zlib::kZlibDefault));
+  const UniquePtr<zip::Compressor>
+                        compress(zip::Compressor::Construct(zip::kZlibDefault));
   for (; i != iend; ++i) {
     FinalizeCatalog(*i, stop_for_tweaks);
 
     // Compress and upload catalog
     shash::Any hash_catalog(spooler_->GetHashAlgorithm(),
                             shash::kSuffixCatalog);
-    zlib::InputPath input((*i)->database_path());
+    zip::InputPath input((*i)->database_path());
     cvmfs::NullSink out_null;
     if (compress->Compress(&input, &out_null, &hash_catalog)
-                                                          != zlib::kStreamEnd) {
+                                                           != zip::kStreamEnd) {
       PANIC(kLogStderr, "could not compress catalog %s",
             (*i)->mountpoint().ToString().c_str());
     }

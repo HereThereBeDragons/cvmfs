@@ -7,7 +7,7 @@
 #include "decompressor_echo.h"
 #include "decompressor_zlib.h"
 #include "decompressor_zstd.h"
-namespace zlib {
+namespace zip {
 
 void Decompressor::RegisterPlugins() {
   RegisterPlugin<ZlibDecompressor>();

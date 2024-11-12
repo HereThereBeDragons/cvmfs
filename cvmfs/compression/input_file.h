@@ -7,7 +7,7 @@
 
 #include "input_abstract.h"
 
-namespace zlib {
+namespace zip {
 
 /**
  * Read-only data source: allows chunked reading of a file given by a FILE*

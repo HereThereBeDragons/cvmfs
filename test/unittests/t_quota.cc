@@ -505,11 +505,11 @@ TEST_F(T_QuotaManager, RebuildDatabase) {
   CreateFile(tmp_path_ + "/" + hashes_[1].MakePath(), 0600);
   unsigned char buf = 'x';
 
-  const UniquePtr<zlib::Compressor>
-                        copy(zlib::Compressor::Construct(zlib::kNoCompression));
-  zlib::InputMem in_mem(&buf, 1);
+  const UniquePtr<zip::Compressor>
+                          copy(zip::Compressor::Construct(zip::kNoCompression));
+  zip::InputMem in_mem(&buf, 1);
   cvmfs::PathSink out_path(tmp_path_ + "/" + hashes_[1].MakePath());
-  EXPECT_TRUE(copy->Compress(&in_mem, &out_path) == zlib::kStreamEnd);
+  EXPECT_TRUE(copy->Compress(&in_mem, &out_path) == zip::kStreamEnd);
   quota_mgr_ = PosixQuotaManager::Create(tmp_path_, limit_, threshold_, true);
   ASSERT_TRUE(quota_mgr_ != NULL);
   quota_mgr_->Spawn();

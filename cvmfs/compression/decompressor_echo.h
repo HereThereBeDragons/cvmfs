@@ -9,7 +9,7 @@
 
 #include "decompressor.h"
 
-namespace zlib {
+namespace zip {
 
 /**
  * EchoDecompressor is a decompressor that just plainly copies data
@@ -39,7 +39,7 @@ class EchoDecompressor: public Decompressor {
   virtual bool Reset() { is_healthy_ = true; return true; }
   virtual Decompressor* Clone();
   virtual std::string Describe();
-  static bool WillHandle(const zlib::Algorithms &alg);
+  static bool WillHandle(const zip::Algorithms &alg);
 
  private:
   bool is_healthy_;

@@ -55,7 +55,7 @@ class CommandGraft : public Command {
                    const std::string &dir_name);
 
   bool ChecksumFdWithChunks(const std::string &input_file,
-                            zlib::ZlibCompressor *compressor,
+                            zip::ZlibCompressor *compressor,
                             uint64_t *file_size,
                             shash::Any *file_hash,
                             std::vector<uint64_t> *chunk_offsets,
@@ -64,7 +64,7 @@ class CommandGraft : public Command {
   std::string output_file_;
   std::string input_file_;
   bool verbose_;
-  zlib::Algorithms compression_alg_;
+  zip::Algorithms compression_alg_;
   shash::Algorithms hash_alg_;
   uint64_t chunk_size_;
   bool generate_bulk_hash_;

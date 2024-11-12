@@ -45,7 +45,7 @@ class IngestionPipeline : public Observable<upload::SpoolerResult> {
   static const unsigned kNforkChunk = 1;
   static const unsigned kNforkRead = 8;
 
-  const zlib::Algorithms compression_algorithm_;
+  const zip::Algorithms compression_algorithm_;
   const shash::Algorithms hash_algorithm_;
   const bool generate_legacy_bulk_chunks_;
   const bool chunking_enabled_;

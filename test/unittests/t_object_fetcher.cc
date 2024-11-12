@@ -600,13 +600,13 @@ class T_ObjectFetcher : public ::testing::Test {
                                shash::Any   *content_hash) {
     const std::string txn_path = CreateTempPath(temp_directory + "/blob", 0600);
 
-    const UniquePtr<zlib::Compressor>
-                      compress(zlib::Compressor::Construct(zlib::kZlibDefault));
-    zlib::InputPath in_path(tmp_path);
+    const UniquePtr<zip::Compressor>
+                        compress(zip::Compressor::Construct(zip::kZlibDefault));
+    zip::InputPath in_path(tmp_path);
     cvmfs::PathSink out_path(txn_path);
-    const zlib::StreamStates retval =
+    const zip::StreamStates retval =
                           compress->Compress(&in_path, &out_path, content_hash);
-    EXPECT_EQ(retval, zlib::kStreamEnd) << "failed to compress file " <<
+    EXPECT_EQ(retval, zip::kStreamEnd) << "failed to compress file " <<
                                            tmp_path << " to " << txn_path;
     InsertIntoStorage(txn_path, *content_hash);
   }

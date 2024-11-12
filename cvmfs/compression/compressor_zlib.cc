@@ -16,9 +16,9 @@
 
 using namespace std;  // NOLINT
 
-namespace zlib {
+namespace zip {
 
-bool ZlibCompressor::WillHandle(const zlib::Algorithms &alg) {
+bool ZlibCompressor::WillHandle(const zip::Algorithms &alg) {
   return alg == kZlibDefault;
 }
 
@@ -38,7 +38,7 @@ ZlibCompressor::ZlibCompressor(const Algorithms &alg)
 
 
 Compressor* ZlibCompressor::Clone() {
-  ZlibCompressor* other = new ZlibCompressor(zlib::kZlibDefault);
+  ZlibCompressor* other = new ZlibCompressor(zip::kZlibDefault);
   assert(stream_.avail_in == 0);
   // Delete the other stream
   int retcode = deflateEnd(&other->stream_);

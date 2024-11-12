@@ -38,12 +38,12 @@ CatalogBalancer<CatalogMgrT>::MakeEmptyDirectoryEntryBase(
   shash::Algorithms algorithm = catalog_mgr_->spooler_->GetHashAlgorithm();
   shash::Any file_hash(algorithm);
 
-  UniquePtr<zlib::Compressor>
-                    compressor(zlib::Compressor::Construct(zlib::kZlibDefault));
+  UniquePtr<zip::Compressor>
+                    compressor(zip::Compressor::Construct(zip::kZlibDefault));
 
-  zlib::InputMem in(NULL, 0);
+  zip::InputMem in(NULL, 0);
   cvmfs::MemSink empty_compressed(0);
-  assert(compressor->Compress(&in, &empty_compressed) == zlib::kStreamEnd);
+  assert(compressor->Compress(&in, &empty_compressed) == zip::kStreamEnd);
 
   shash::HashMem(empty_compressed.data(), empty_compressed.pos(), &file_hash);
 

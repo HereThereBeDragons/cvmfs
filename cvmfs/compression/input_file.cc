@@ -5,7 +5,7 @@
 #include "input_file.h"
 #include "util/smalloc.h"
 
-namespace zlib {
+namespace zip {
 
 InputFile::InputFile(const FILE* src, const size_t max_chunk_size,
                      const bool is_owner) :

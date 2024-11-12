@@ -264,7 +264,7 @@ static size_t CallbackCurlData(void *ptr, size_t size, size_t nmemb,
                   num_bytes, info->hash_context());
   }
 
-  zlib::InputMem in_mem(reinterpret_cast<unsigned char*>(ptr), num_bytes);
+  zip::InputMem in_mem(reinterpret_cast<unsigned char*>(ptr), num_bytes);
   if (!info->DecompressToSink(&in_mem)) {
     return 0;
   }

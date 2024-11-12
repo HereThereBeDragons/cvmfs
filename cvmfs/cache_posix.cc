@@ -175,12 +175,12 @@ int PosixCacheManager::CommitTxn(void *txn) {
                transaction->id.ToString().c_str(),
                transaction->expected_size, transaction->size);
 
-      const UniquePtr<zlib::Compressor>
-                        copy(zlib::Compressor::Construct(zlib::kNoCompression));
-      zlib::InputPath in_path(transaction->tmp_path);
+      const UniquePtr<zip::Compressor>
+                        copy(zip::Compressor::Construct(zip::kNoCompression));
+      zip::InputPath in_path(transaction->tmp_path);
       cvmfs::PathSink
            out_path(cache_path_ + "/quarantaine/" + transaction->id.ToString());
-      if (copy->Compress(&in_path, &out_path) != zlib::kStreamEnd) {
+      if (copy->Compress(&in_path, &out_path) != zip::kStreamEnd) {
         LogCvmfs(kLogCache, kLogDebug | kLogSyslogErr,
                                "copying file %s to %s failed",
                                in_path.path().c_str(), out_path.path().c_str());
