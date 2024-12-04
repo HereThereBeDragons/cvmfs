@@ -304,7 +304,6 @@ static size_t CallbackCurlData(void *ptr, size_t size, size_t nmemb,
   return num_bytes;
 }
 
-#ifdef DEBUGMSG
 static int CallbackCurlDebug(
   CURL * handle,
   curl_infotype type,
@@ -384,11 +383,15 @@ static int CallbackCurlDebug(
     msg = "<Non-plaintext sequence>";
   }
 
+#if DEBUGMSG
   LogCvmfs(kLogCurl, kLogDebug, "%s%s",
            prefix.c_str(), Trim(msg, true /* trim_newline */).c_str());
+#else
+  LogCvmfs(kLogCurl, kLogSyslog, "%s%s",
+           prefix.c_str(), Trim(msg, true /* trim_newline */).c_str());
+#endif
   return 0;
 }
-#endif
 
 //------------------------------------------------------------------------------
 
@@ -706,6 +709,14 @@ void *DownloadManager::MainDownload(void *data) {
 
         curl_multi_remove_handle(download_mgr->curl_multi_, easy_handle);
         if (download_mgr->VerifyAndFinalize(curl_error, info)) {
+          // set curl debug mode when retrying
+          LogCvmfs(kLogDownload, kLogDebug | kLogSyslog,
+                               "(manager %s - id %" PRId64 ") download failed. "
+                               "Retrying with CURL debug mode on.",
+                               download_mgr->name_.c_str(), info->id());
+          curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, 1);
+          curl_easy_setopt(easy_handle, CURLOPT_DEBUGFUNCTION,
+                                                             CallbackCurlDebug);
           curl_multi_add_handle(download_mgr->curl_multi_, easy_handle);
           curl_multi_socket_action(download_mgr->curl_multi_,
                                    CURL_SOCKET_TIMEOUT,
