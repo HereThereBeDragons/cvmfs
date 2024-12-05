@@ -270,7 +270,7 @@ class DownloadManager {  // NOLINT(clang-analyzer-optin.performance.Padding)
   bool ValidateGeoReply(const std::string &reply_order,
                         const unsigned expected_size,
                         std::vector<uint64_t> *reply_vals);
-  void SwitchHostInfo(const std::string &typ, HostInfo &info, JobInfo *jobinfo);
+  void SwitchHostInfo(const std::string &typ, HostInfo *info, JobInfo *jobinfo);
   void SwitchMetalink(JobInfo *info);
   void SwitchHost(JobInfo *info);
   void SwitchProxy(JobInfo *info);
@@ -292,8 +292,8 @@ class DownloadManager {  // NOLINT(clang-analyzer-optin.performance.Padding)
   bool VerifyAndFinalize(const int curl_error, JobInfo *info);
   void InitHeaders();
   void CloneProxyConfig(DownloadManager *clone);
-  void CheckHostInfoReset(const std::string &typ, HostInfo &info,
-                          JobInfo *jobinfo, time_t &now);
+  void CheckHostInfoReset(const std::string &typ, HostInfo *info,
+                          JobInfo *jobinfo, time_t *now);
 
   bool EscapeUrlChar(unsigned char input, char output[3]);
   std::string EscapeUrl(const int64_t jobinfo_id, const std::string &url);

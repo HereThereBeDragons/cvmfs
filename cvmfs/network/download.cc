@@ -1017,23 +1017,21 @@ void DownloadManager::InitializeRequest(JobInfo *info, CURL *handle) {
 
 void DownloadManager::CheckHostInfoReset(
     const std::string &typ,
-    HostInfo &info,
+    HostInfo *info,
     JobInfo *jobinfo,
-    time_t &now)
-{
-  if (info.timestamp_backup > 0) {
-    if (now == 0)
-      now = time(NULL);
-    if (static_cast<int64_t>(now) >
-        static_cast<int64_t>(info.timestamp_backup + info.reset_after))
-    {
+    time_t *now) {
+  if (info->timestamp_backup > 0) {
+    if (*now == 0)
+      *now = time(NULL);
+    if (static_cast<int64_t>(*now) >
+        static_cast<int64_t>(info->timestamp_backup + info->reset_after)) {
       LogCvmfs(kLogDownload, kLogDebug | kLogSyslogWarn,
               "(manager %s - id %" PRId64 ") "
               "switching %s from %s to %s (reset %s)", name_.c_str(),
-              jobinfo->id(), typ.c_str(), (*info.chain)[info.current].c_str(),
-              (*info.chain)[0].c_str(), typ.c_str());
-      info.current = 0;
-      info.timestamp_backup = 0;
+              jobinfo->id(), typ.c_str(), (*info->chain)[info->current].c_str(),
+              (*info->chain)[0].c_str(), typ.c_str());
+      info->current = 0;
+      info->timestamp_backup = 0;
     }
   }
 }
@@ -1113,8 +1111,8 @@ void DownloadManager::SetUrlOptions(JobInfo *info) {
   }  // end !sharding
 
   // Check if metalink and host chains need to be reset
-  CheckHostInfoReset("metalink", opt_metalink_, info, now);
-  CheckHostInfoReset("host", opt_metalink_, info, now);
+  CheckHostInfoReset("metalink", &opt_metalink_, info, &now);
+  CheckHostInfoReset("host", &opt_metalink_, info, &now);
 
   curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_LIMIT, opt_low_speed_limit_);
   if (info->proxy() != "DIRECT") {
@@ -1421,7 +1419,6 @@ static bool sortlinks(const std::string &s1, const std::string &s2) {
  * See rfc6249.
  */
 void DownloadManager::ProcessLink(JobInfo *info) {
-
   std::vector<std::string> links = SplitString(info->link(), ',');
   if (info->link().find("; pri=") != std::string::npos)
     std::sort(links.begin(), links.end(), sortlinks);
@@ -2379,11 +2376,11 @@ void DownloadManager::SwitchProxy(JobInfo *info) {
  * transfer has already done the switch.
  */
 void DownloadManager::SwitchHostInfo(const std::string &typ,
-                                     HostInfo &info,
+                                     HostInfo *info,
                                      JobInfo *jobinfo) {
   MutexLockGuard m(lock_options_);
 
-  if (!info.chain || (info.chain->size() == 1)) {
+  if (!info->chain || (info->chain->size() == 1)) {
     return;
   }
 
@@ -2394,14 +2391,14 @@ void DownloadManager::SwitchHostInfo(const std::string &typ,
     } else {
       lastused = jobinfo->current_metalink_chain_index();
     }
-    if (lastused != info.current) {
+    if (lastused != info->current) {
       LogCvmfs(kLogDownload, kLogDebug,
                "(manager '%s' - id %" PRId64 ")"
                "don't switch %s, "
                "last used %s: %s, current %s: %s",
                name_.c_str(), jobinfo->id(), typ.c_str(),
-               typ.c_str(), (*info.chain)[lastused].c_str(),
-               typ.c_str(), (*info.chain)[info.current].c_str());
+               typ.c_str(), (*info->chain)[lastused].c_str(),
+               typ.c_str(), (*info->chain)[info->current].c_str());
       return;
     }
   }
@@ -2414,8 +2411,8 @@ void DownloadManager::SwitchHostInfo(const std::string &typ,
   }
   info_id += ")";
 
-  const std::string old_host = (*info.chain)[info.current];
-  info.current = (info.current + 1) % static_cast<int>(info.chain->size());
+  const std::string old_host = (*info->chain)[info->current];
+  info->current = (info->current + 1) % static_cast<int>(info->chain->size());
   if (typ == "host") {
     perf::Inc(counters_->n_host_failover);
   } else {
@@ -2423,22 +2420,22 @@ void DownloadManager::SwitchHostInfo(const std::string &typ,
   }
   LogCvmfs(kLogDownload, kLogDebug | kLogSyslogWarn,
           "%s switching %s from %s to %s (%s)", info_id.c_str(), typ.c_str(),
-          old_host.c_str(), (*info.chain)[info.current].c_str(),
+          old_host.c_str(), (*info->chain)[info->current].c_str(),
           reason.c_str());
 
   // Remember the timestamp of switching to backup host
-  if (info.reset_after > 0) {
-    if (info.current != 0) {
-      if (info.timestamp_backup == 0)
-        info.timestamp_backup = time(NULL);
+  if (info->reset_after > 0) {
+    if (info->current != 0) {
+      if (info->timestamp_backup == 0)
+        info->timestamp_backup = time(NULL);
     } else {
-      info.timestamp_backup = 0;
+      info->timestamp_backup = 0;
     }
   }
 }
 
 void DownloadManager::SwitchHost(JobInfo *info) {
-  SwitchHostInfo("host", opt_host_, info);
+  SwitchHostInfo("host", &opt_host_, info);
 }
 
 void DownloadManager::SwitchHost() {
@@ -2447,7 +2444,7 @@ void DownloadManager::SwitchHost() {
 
 
 void DownloadManager::SwitchMetalink(JobInfo *info) {
-  SwitchHostInfo("metalink", opt_metalink_, info);
+  SwitchHostInfo("metalink", &opt_metalink_, info);
 }
 
 

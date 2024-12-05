@@ -198,7 +198,8 @@ CommitProcessor::Result CommitProcessor::Process(
 
   std::string new_manifest_path;
   shash::Any new_manifest_hash;
-  if (!merge_tool.Run(params, &new_manifest_path, &new_manifest_hash, final_revision)) {
+  if (!merge_tool.Run(params, &new_manifest_path, &new_manifest_hash,
+                      final_revision)) {
     LogCvmfs(kLogReceiver, kLogSyslogErr,
              "CommitProcessor - error: Catalog merge failed");
     return kMergeFailure;

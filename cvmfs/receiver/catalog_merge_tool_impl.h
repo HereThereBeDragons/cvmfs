@@ -52,7 +52,8 @@ namespace receiver {
 
 template <typename RwCatalogMgr, typename RoCatalogMgr>
 bool CatalogMergeTool<RwCatalogMgr, RoCatalogMgr>::Run(
-    const Params& params, std::string* new_manifest_path, shash::Any* new_manifest_hash, uint64_t *final_rev) {
+    const Params& params, std::string* new_manifest_path,
+    shash::Any* new_manifest_hash, uint64_t *final_rev) {
   UniquePtr<upload::Spooler> spooler;
   perf::StatisticsTemplate stats_tmpl("publish", statistics_);
   counters_ = new perf::FsCounters(stats_tmpl);

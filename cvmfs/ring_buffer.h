@@ -101,4 +101,4 @@ class RingBuffer : SingleCopy {
   unsigned char *buffer_;
 };  // class RingBuffer
 
-#endif  // CVMFS_RING_H_
+#endif  // CVMFS_RING_BUFFER_H_

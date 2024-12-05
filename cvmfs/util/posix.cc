@@ -546,7 +546,8 @@ bool ReadHalfPipe(int fd, void *buf, size_t nbyte, unsigned timeout_ms) {
       if (backoff_ms < max_backoff_ms) backoff_ms *= 2;
     }
     if ((timeout_ms != 0) && (num_bytes == 0)) {
-      duration_ms = (platform_monotonic_time_ns() - timestamp) / (1000UL * 1000UL);
+      duration_ms = (platform_monotonic_time_ns() - timestamp)
+                    / (1000UL * 1000UL);
       if (duration_ms  > timeout_ms)
         return false;
     }
@@ -1656,7 +1657,7 @@ bool ExecAsDaemon(const std::vector<std::string>  &command_line,
     pid_grand_child = fork();
     assert(pid_grand_child >= 0);
 
-    if (pid_grand_child != 0){
+    if (pid_grand_child != 0) {
       pipe_fork.Write<pid_t>(pid_grand_child);
       _exit(0);
     } else {
@@ -1689,7 +1690,6 @@ bool ExecAsDaemon(const std::vector<std::string>  &command_line,
            command_line[0].c_str(),
            static_cast<int>(*child_pid));
   return true;
-
 }
 
 

@@ -292,14 +292,19 @@ PosixQuotaManager *PosixQuotaManager::CreateShared(
   LogCvmfs(kLogQuota, kLogDebug, "trying to connect to existing pipe");
   quota_mgr->pipe_lru_[1] = open(fifo_path.c_str(), O_WRONLY | O_NONBLOCK);
   if (quota_mgr->pipe_lru_[1] >= 0) {
-    const int fd_lockfile_rw = open((workspace_dir + "/lock_cachemgr").c_str(), O_RDWR, 0600);
+    const int fd_lockfile_rw = open((workspace_dir + "/lock_cachemgr").c_str(),
+                                    O_RDWR, 0600);
     unsigned lockfile_magicnumber = 0;
-    const ssize_t result_mn = SafeRead(fd_lockfile_rw, &lockfile_magicnumber, sizeof(lockfile_magicnumber));
-    const ssize_t result = SafeRead(fd_lockfile_rw, &new_cachemgr_pid, sizeof(new_cachemgr_pid));
+    const ssize_t result_mn = SafeRead(fd_lockfile_rw, &lockfile_magicnumber,
+                                       sizeof(lockfile_magicnumber));
+    const ssize_t result = SafeRead(fd_lockfile_rw, &new_cachemgr_pid,
+                                    sizeof(new_cachemgr_pid));
     close(fd_lockfile_rw);
 
-    if ((lockfile_magicnumber != kLockFileMagicNumber) || (result < 0) || (result_mn < 0)
-         || (static_cast<size_t>(result) < sizeof(new_cachemgr_pid))) {
+    if ((lockfile_magicnumber != kLockFileMagicNumber)
+        || (result < 0)
+        || (result_mn < 0)
+        || (static_cast<size_t>(result) < sizeof(new_cachemgr_pid))) {
       if (result != 0) {
         LogCvmfs(kLogQuota, kLogDebug | kLogSyslogErr,
                  "could not read cache manager pid from lockfile");
@@ -377,7 +382,7 @@ PosixQuotaManager *PosixQuotaManager::CreateShared(
   command_line.push_back(StringifyInt(cleanup_threshold));
   // do not propagate foreground in order to reliably get pid from exec
   // instead, daemonize right here
-  command_line.push_back(StringifyInt(true)); //foreground
+  command_line.push_back(StringifyInt(true));  // foreground
   command_line.push_back(StringifyInt(GetLogSyslogLevel()));
   command_line.push_back(StringifyInt(GetLogSyslogFacility()));
   command_line.push_back(GetLogDebugFile() + ":" + GetLogMicroSyslog());
@@ -408,10 +413,13 @@ PosixQuotaManager *PosixQuotaManager::CreateShared(
   }
   LogCvmfs(kLogQuota, kLogDebug, "new cache manager pid: %d", new_cachemgr_pid);
   quota_mgr->SetCacheMgrPid(new_cachemgr_pid);
-  const int fd_lockfile_rw = open((workspace_dir + "/lock_cachemgr").c_str(), O_RDWR | O_TRUNC, 0600);
+  const int fd_lockfile_rw = open((workspace_dir + "/lock_cachemgr").c_str(),
+                                  O_RDWR | O_TRUNC, 0600);
   const unsigned magic_number = PosixQuotaManager::kLockFileMagicNumber;
-  const bool result_mn = SafeWrite(fd_lockfile_rw, &magic_number, sizeof(magic_number));
-  const bool result = SafeWrite(fd_lockfile_rw, &new_cachemgr_pid, sizeof(new_cachemgr_pid));
+  const bool result_mn = SafeWrite(fd_lockfile_rw, &magic_number,
+                                   sizeof(magic_number));
+  const bool result = SafeWrite(fd_lockfile_rw, &new_cachemgr_pid,
+                                sizeof(new_cachemgr_pid));
   if (!result || !result_mn) {
     PANIC(kLogSyslogErr, "could not write cache manager pid to lockfile");
   }
@@ -764,11 +772,13 @@ bool PosixQuotaManager::SetSharedLimit(uint64_t limit) {
 }
 
 
-bool PosixQuotaManager::SetLimit( uint64_t size) {
+bool PosixQuotaManager::SetLimit(uint64_t size) {
   if (!spawned_) {
      limit_ = size;
      cleanup_threshold_ = size/2;
-     LogCvmfs(kLogQuota, kLogDebug | kLogSyslog, "Quota limit set to %lu / threshold %lu", limit_, cleanup_threshold_ ); 
+     LogCvmfs(kLogQuota, kLogDebug | kLogSyslog,
+                                       "Quota limit set to %lu / threshold %lu",
+                                       limit_, cleanup_threshold_);
      return true;
   }
   return SetSharedLimit(size);
@@ -801,7 +811,8 @@ uint64_t PosixQuotaManager::GetCleanupRate(uint64_t period_s) {
   cmd.size = period_s;
   cmd.return_pipe = pipe_cleanup_rate[1];
   WritePipe(pipe_lru_[1], &cmd, sizeof(cmd));
-  ManagedReadHalfPipe(pipe_cleanup_rate[0], &cleanup_rate, sizeof(cleanup_rate));
+  ManagedReadHalfPipe(pipe_cleanup_rate[0], &cleanup_rate,
+                      sizeof(cleanup_rate));
   CloseReturnPipe(pipe_cleanup_rate);
 
   return cleanup_rate;
@@ -1057,7 +1068,6 @@ vector<string> PosixQuotaManager::ListVolatile() {
  * Entry point for the shared cache manager process
  */
 int PosixQuotaManager::MainCacheManager(int argc, char **argv) {
-	
   LogCvmfs(kLogQuota, kLogDebug, "starting quota manager");
   int retval;
 
@@ -1247,9 +1257,11 @@ void *PosixQuotaManager::MainCommandServer(void *data) {
         quota_mgr->BindReturnPipe(command_buffer[num_commands].return_pipe);
       if (return_pipe < 0)
         continue;
-      quota_mgr->limit_ = size; // use the size field to transmit the size
+      quota_mgr->limit_ = size;  // use the size field to transmit the size
       quota_mgr->cleanup_threshold_ = size/2;
-      LogCvmfs(kLogQuota, kLogDebug | kLogSyslog, "Quota limit set to %lu / threshold %lu", quota_mgr->limit_, quota_mgr->cleanup_threshold_ );
+      LogCvmfs(kLogQuota, kLogDebug | kLogSyslog,
+                             "Quota limit set to %lu / threshold %lu",
+                             quota_mgr->limit_, quota_mgr->cleanup_threshold_);
       bool ret = true;
       WritePipe(return_pipe, &ret, sizeof(ret));
       quota_mgr->UnbindReturnPipe(return_pipe);
@@ -2057,7 +2069,7 @@ void PosixQuotaManager::ManagedReadHalfPipe(int fd, void *buf, size_t nbyte) {
     // try only as long as the cachemgr is still alive
   } while (!result && getpgid(cachemgr_pid_) >= 0);
   if (!result) {
-    PANIC(kLogStderr, "Error: quota manager could not read from cachemanager pipe");
+    PANIC(kLogStderr,
+                  "Error: quota manager could not read from cachemanager pipe");
   }
-
 }

@@ -3,7 +3,7 @@
  */
 
 // avoid clang-tidy false positives (at least starting with clang14)
-//NOLINTBEGIN
+// NOLINTBEGIN
 
 #ifndef CVMFS_CATALOG_MGR_IMPL_H_
 #define CVMFS_CATALOG_MGR_IMPL_H_
@@ -1236,4 +1236,4 @@ void AbstractCatalogManager<CatalogT>::EnforceSqliteMemLimit() {
 
 
 #endif  // CVMFS_CATALOG_MGR_IMPL_H_
-//NOLINTEND
+// NOLINTEND
