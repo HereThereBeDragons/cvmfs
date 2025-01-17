@@ -273,13 +273,13 @@ SpacesInParens: Never  # use below for more fine-grained selection
 #   Other: false
 RemoveSemicolon: false
 RemoveParentheses: Leave
-IntegerLiteralSeparator:
-  Binary:          4
-  BinaryMinDigits: 8
-  Decimal:         0
-  DecimalMinDigits: 0
-  Hex:             2
-  HexMinDigits:    6
+# IntegerLiteralSeparator: # old? compilers do not like this feature
+#   Binary:          4
+#   BinaryMinDigits: 8
+#   Decimal:         0
+#   DecimalMinDigits: 0
+#   Hex:             2
+#   HexMinDigits:    6
 BreakBeforeInlineASMColon: OnlyMultiline 
 BreakArrays: false
 BreakAdjacentStringLiterals: true 
